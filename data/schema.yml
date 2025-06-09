@@ -1,0 +1,15 @@
+apiVersion: platform.confluent.io/v1beta1
+kind: Schema
+metadata:
+  name: demo-topic-1-value
+  namespace: confluent
+spec:
+  data:
+    format: avro
+    configRef: schema-config
+  schemaRegistryRest:
+    endpoint: https://psrc-8qmnr.eu-west-2.aws.confluent.cloud
+    authentication:
+      type: basic
+      basic:
+        secretRef: cloud-credentials-sr
