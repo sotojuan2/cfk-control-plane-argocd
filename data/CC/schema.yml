@@ -2,7 +2,7 @@ apiVersion: platform.confluent.io/v1beta1
 kind: Schema
 metadata:
   name: demo-topic-1-value
-  namespace: confluent
+  namespace: confluent-cloud
 spec:
   data:
     format: avro
