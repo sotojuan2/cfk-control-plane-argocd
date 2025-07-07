@@ -125,6 +125,15 @@ At the end you will see the following in argocd UI
 ![ArgoCD UI](./images/operator.png)
 
 
+## Deploy a CP Cluster
+
+### Start Docker Compose
+
+```bash
+cd cp 
+docker compose up -d
+```
+
 ## Deploy a Confluet Cloud Cluster
 
 ### Create a new Standard cluster
@@ -147,6 +156,8 @@ At the end you will see the following in argocd UI
 
 
 ## Deploy a new ArgoCD App for CC
+
+### Create App
 
 Login in argo UI and add a new application. Copy and paste the following yaml.
 
@@ -180,9 +191,14 @@ Or you can use the argocd cli
 argocd login localhost:8080
 argocd app create -f cfk_confluent_cloud.yaml
 ```
+### Validate 
+1. Navigate to topic. Now you can see a new topic has created ('demo-topic-1')
+2. Navigate to stream governance. New subject has created('demo-topic-1-value').
 
 
 ## Deploy a new ArgoCD App for CP
+
+### Create a new App
 
 Login in argo UI and add a new application. Copy and paste the following yaml.
 
@@ -216,3 +232,6 @@ Or you can use the argocd cli
 argocd login localhost:8080
 argocd app create -f cfk_confluent_cp.yaml
 ```
+
+### Validate 
+1. Navigate to control center - topic. Now you can see a new topic has created ('demo-topic-1')
