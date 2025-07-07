@@ -1,13 +1,13 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: confluent-cc
+  name: Confluent Cloud
 spec:
   destination:
     namespace: confluent-cloud
-    server: https://kubernetes.default.svc
+    server: ''
   source:
-    path: data/CC
+    path: /data/cloud
     repoURL: https://github.com/sotojuan2/cfk-control-plane-argocd
     targetRevision: HEAD
   sources: []
