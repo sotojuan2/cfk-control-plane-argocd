@@ -13,5 +13,5 @@ spec:
       type: basic
       basic:
         secretRef: "cloud-credentials"
-    endpoint: https://pkc-7xoy1.eu-central-1.aws.confluent.cloud:443
-    kafkaClusterID: "lkc-ong22x"
+    endpoint: https://pkc-z9doz.eu-west-1.aws.confluent.cloud:443
+    kafkaClusterID: "lkc-7gggxp"
