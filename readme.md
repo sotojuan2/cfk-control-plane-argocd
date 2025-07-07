@@ -124,3 +124,95 @@ argocd app create -f cfk_across_namespace.yaml
 At the end you will see the following in argocd UI
 ![ArgoCD UI](./images/operator.png)
 
+
+## Deploy a Confluet Cloud Cluster
+
+### Create a new Standard cluster
+
+1. Select Cloud provider
+2. Fill in "Cluster name"
+
+### Create a new Service Account
+1. Navigate to Accounts & access
+2. Add a new Service Account
+3. Fill in Name and description
+4. Assign role "CloudClusterAdmin" to the cluster created in previous step.
+5. Finally create Service Account
+
+### Create an API KEY
+
+1. Add a new API Key
+2. Select Service Account created in previous step.
+3. Create ACL that allow create topic with prefix "demo"
+
+
+## Deploy a new ArgoCD App for CC
+
+Login in argo UI and add a new application. Copy and paste the following yaml.
+
+
+```yaml
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: confluent-cloud
+spec:
+  destination:
+    namespace: confluent-cloud
+    server: 'https://kubernetes.default.svc'
+  source:
+    path: /data/cloud
+    repoURL: https://github.com/sotojuan2/cfk-control-plane-argocd
+    targetRevision: HEAD
+  sources: []
+  project: default
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      prune: false
+      selfHeal: false
+```
+
+Or you can use the argocd cli
+
+```shell
+argocd login localhost:8080
+argocd app create -f cfk_confluent_cloud.yaml
+```
+
+
+## Deploy a new ArgoCD App for CP
+
+Login in argo UI and add a new application. Copy and paste the following yaml.
+
+
+```yaml
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: confluent-cp
+spec:
+  destination:
+    namespace: confluent-cp
+    server: https://kubernetes.default.svc
+  source:
+    path: data/CP
+    repoURL: https://github.com/sotojuan2/cfk-control-plane-argocd
+    targetRevision: HEAD
+  sources: []
+  project: default
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      prune: false
+      selfHeal: false
+```
+
+Or you can use the argocd cli
+
+```shell
+argocd login localhost:8080
+argocd app create -f cfk_confluent_cp.yaml
+```
