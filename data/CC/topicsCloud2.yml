@@ -1,0 +1,17 @@
+apiVersion: platform.confluent.io/v1beta1
+kind: KafkaTopic
+metadata:
+  name: demo-topic-2
+  namespace: confluent-cloud
+spec:
+  replicas: 3
+  partitionCount: 4
+  configs:
+    message.timestamp.type: "LogAppendTime"
+  kafkaRest:
+    authentication:
+      type: basic
+      basic:
+        secretRef: "cloud-credentials"
+    endpoint: https://pkc-z9doz.eu-west-1.aws.confluent.cloud:443
+    kafkaClusterID: "lkc-7gggxp"
