@@ -1,7 +1,7 @@
 apiVersion: platform.confluent.io/v1beta1
 kind: KafkaTopic
 metadata:
-  name: demo-topic-A
+  name: A-demo-topic-A
   namespace: confluent-cloud
 spec:
   replicas: 3

@@ -154,6 +154,22 @@ docker compose up -d
 2. Select Service Account created in previous step.
 3. Create ACL that allow create topic with prefix "demo"
 
+## Deploy Gatekeeper 
+
+
+### Install OPA Gatekeeper
+```
+helm repo add gatekeeper https://open-policy-agent.github.io/gatekeeper/charts
+helm install gatekeeper/gatekeeper --name-template=gatekeeper --namespace gatekeeper-system --create-namespace
+```
+
+### Create a rule 
+
+Now lets's install a template that demands all topic names to be composed of small letters only ^demo-topic-[0-9]+$:
+
+```
+kubectl apply -f kafkatopic-naming-template.yaml
+```
 
 ## Deploy a new ArgoCD App for CC
 
@@ -235,3 +251,8 @@ argocd app create -f cfk_confluent_cp.yaml
 
 ### Validate 
 1. Navigate to control center - topic. Now you can see a new topic has created ('demo-topic-1')
+
+
+## Create a new Topic  
+
+Create a new Topic that doesn't match the rule.
