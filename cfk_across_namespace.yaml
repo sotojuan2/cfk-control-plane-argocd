@@ -7,7 +7,7 @@ metadata:
 spec:
   destination:
     name: ''
-    namespace: confluent-dev
+    namespace: confluent
     server: 'https://kubernetes.default.svc'
   source:
     path: ''
