@@ -7,7 +7,7 @@ spec:
     namespace: confluent-cloud
     server: 'https://kubernetes.default.svc'
   source:
-    path: /data/cloud
+    path: data/CC
     repoURL: https://github.com/sotojuan2/cfk-control-plane-argocd
     targetRevision: HEAD
   sources: []
