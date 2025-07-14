@@ -256,3 +256,9 @@ argocd app create -f cfk_confluent_cp.yaml
 ## Create a new Topic  
 
 Create a new Topic that doesn't match the rule.
+
+### Validate the Rule was trigger
+
+```shell
+kubectl get events --all-namespaces --sort-by='.lastTimestamp' --field-selector type=Warning
+```
