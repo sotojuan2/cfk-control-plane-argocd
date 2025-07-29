@@ -1,10 +1,12 @@
 package kafkatopic_naming
 
-# Default to allow, unless a deny rule matches
-default allow = true
+# Allow only if there are no deny messages
+allow if {
+    count(deny) == 0
+}
 
 # Deny if a single topic object has an invalid name
-deny[msg] {
+deny contains msg if {
     input.kind == "KafkaTopic"
     name := input.metadata.name
     not valid_topic_name(name)
@@ -12,7 +14,7 @@ deny[msg] {
 }
 
 # Deny if any topic in an array of topics has an invalid name
-deny[msg] {
+deny contains msg if {
     some i
     topic := input[i]
     topic.kind == "KafkaTopic"
@@ -22,8 +24,6 @@ deny[msg] {
 }
 
 # Helper function to validate the name
-valid_topic_name(name) {
-    re_match("^demo-topic-[0-9]+$", name)
+valid_topic_name(name) if {
+    regex.match("^demo-topic-[0-9]+$", name)
 }
-
-
