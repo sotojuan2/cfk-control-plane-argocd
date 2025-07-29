@@ -27,5 +27,3 @@ valid_topic_name(name) {
 }
 
 
-re_match("^demo-topic-[0-9]+$", name)
-}
