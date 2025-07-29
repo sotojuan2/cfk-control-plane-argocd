@@ -21,8 +21,27 @@ jobs:
             **/*.yaml
             **/*.yml
 
+      - name: Echo changed manifest files
+        run: |
+          echo "Changed manifest files: ${{ steps.changed-files.outputs.all_changed_files }}"
+
       - name: Set up OPA
         uses: open-policy-agent/setup-opa@v2
+
+      # Test the OPA validation with a hardcoded path first (for Task 5.4 testing)
+      - name: Test OPA validation with hardcoded path
+        run: |
+          echo "Testing validation with hardcoded test manifest"
+          # Using a known test manifest file for validation testing
+          TEST_FILE="policies/topics_valid.yml"
+          
+          if [[ -f "$TEST_FILE" ]]; then
+            echo "Validating $TEST_FILE..."
+            opa eval --fail --input "$TEST_FILE" --data policies/kafkatopic_naming.rego 'data.kafkatopic_naming.allow'
+            echo "✅ Test validation successful"
+          else
+            echo "❌ Test file $TEST_FILE not found. This is just a test step, continuing workflow."
+          fi
 
       - name: OPA validation
         if: steps.changed-files.outputs.any_changed == 'true'

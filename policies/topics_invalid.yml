@@ -1,11 +1,19 @@
 apiVersion: platform.confluent.io/v1beta1
 kind: KafkaTopic
 metadata:
+<<<<<<< Updated upstream
   name: demo-topic-4
   namespace: confluent
 spec:
   replicas: 3
   partitionCount: 1
+=======
+  name: demo-topic-tst
+  namespace: confluent
+spec:
+  replicas: 3
+  partitionCount: 4
+>>>>>>> Stashed changes
   configs:
     message.timestamp.type: "LogAppendTime"
   kafkaRest:

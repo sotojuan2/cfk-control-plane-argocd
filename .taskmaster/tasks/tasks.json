@@ -33,7 +33,7 @@
         "testStrategy": "Commit an empty or minimal workflow file and observe if it triggers correctly on a dummy PR.",
         "priority": "medium",
         "dependencies": [],
-        "status": "pending",
+        "status": "done",
         "subtasks": []
       },
       {
@@ -143,7 +143,7 @@
               "5.1"
             ],
             "details": "Add the `uses:` directive for the chosen action (e.g., `uses: open-policy-agent/opa-check@v1`). Ensure it is placed after the file discovery step.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Commit the change and observe the workflow run to confirm the action is downloaded and initialized without syntax errors in the YAML."
           },
           {
@@ -155,7 +155,7 @@
               "5.3"
             ],
             "details": "Use the `with:` block to pass parameters. Set the policy path to `kafkatopic_naming.rego`. Pass the output variable from the file discovery step (subtask 5.2) as the input file list. Specify the Rego query to execute (e.g., `data.kafka.naming.deny`).",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Run the workflow with a hardcoded path to a single test manifest to verify the parameter passing mechanism works before using the dynamic list."
           },
           {
@@ -286,7 +286,7 @@
     ],
     "metadata": {
       "created": "2025-07-29T08:08:26.040Z",
-      "updated": "2025-07-29T10:27:26.990Z",
+      "updated": "2025-07-29T12:59:15.406Z",
       "description": "Tasks for master context"
     }
   }
