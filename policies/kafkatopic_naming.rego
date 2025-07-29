@@ -79,17 +79,13 @@ valid_topic_name(name) {
 get_validation_error(name) = reason {
     name == ""
     reason := "name cannot be empty"
-}
-
-get_validation_error(name) = reason {
-    name != ""
+} else = reason {
     not startswith(name, "demo-topic-")
     reason := "must start with 'demo-topic-'"
-}
-
-get_validation_error(name) = reason {
-    name != ""
+} else = reason {
     startswith(name, "demo-topic-")
     not re_match("^demo-topic-[0-9]+$", name)
     reason := "must end with one or more digits after 'demo-topic-'"
+} else = reason {
+    reason := "does not match pattern '^demo-topic-[0-9]+$'"
 }

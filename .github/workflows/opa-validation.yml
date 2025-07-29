@@ -27,6 +27,8 @@ jobs:
 
       - name: Set up OPA
         uses: open-policy-agent/setup-opa@v2
+        with:
+          version: '0.70.0'
 
       # Test the OPA validation with a hardcoded path first (for Task 5.4 testing)
       - name: Test OPA validation with hardcoded path
