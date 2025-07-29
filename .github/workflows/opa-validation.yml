@@ -27,9 +27,14 @@ jobs:
       - name: Echo changed manifest files
         run: |
           echo "Changed manifest files: ${{ steps.changed-files.outputs.all_changed_files }}"
-      
+
+      - name: Set up OPA
+        uses: open-policy-agent/setup-opa@v2
+
       - name: OPA validation
-        uses: open-policy-agent/opa-github-action@v1
-        with:
-          policy: policies/kafkatopic_naming.rego
-          files: ${{ steps.changed-files.outputs.all_changed_files }}
+        run: |
+          opa eval --fail \
+            --input ${{ steps.changed-files.outputs.all_changed_files }} \
+            --data policies/kafkatopic_naming.rego \
+            'data.kafkatopic_naming.allow'
+      
