@@ -62,16 +62,18 @@ jobs:
               if grep -q "kind: KafkaTopic" "$file"; then
                 echo "Found KafkaTopic in $file, running OPA validation..."
                 
-                # Run OPA validation
-                if ! opa eval --fail --input "$file" --data policies/kafkatopic_naming.rego 'data.kafkatopic_naming.allow'; then
+                # Run OPA validation - check if allow is true
+                allow_result=$(opa eval --input "$file" --data policies/kafkatopic_naming.rego 'data.kafkatopic_naming.allow' --format raw)
+                
+                if [ "$allow_result" = "true" ]; then
+                  echo "✅ Validation passed for $file"
+                else
                   echo "❌ Validation failed for $file"
                   validation_failed=true
                   
                   # Show the specific deny messages
                   echo "Denial reasons:"
-                  opa eval --input "$file" --data policies/kafkatopic_naming.rego 'data.kafkatopic_naming.deny'
-                else
-                  echo "✅ Validation passed for $file"
+                  opa eval --input "$file" --data policies/kafkatopic_naming.rego 'data.kafkatopic_naming.deny' --format pretty
                 fi
               else
                 echo "Skipping $file (not a KafkaTopic resource)"
