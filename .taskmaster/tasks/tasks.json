@@ -115,7 +115,7 @@
           2,
           4
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -166,7 +166,7 @@
               "5.4"
             ],
             "details": "The dummy manifest can be either compliant or non-compliant. The goal is not to test the policy logic itself, but to verify that the OPA action is invoked, correctly receives the manifest as input, and executes the policy against it, producing an exit code.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Observe the workflow logs for the draft PR. Confirm the OPA step runs, logs that it is processing the dummy manifest file, and either passes or fails as expected based on the dummy file's content."
           }
         ]
@@ -181,15 +181,15 @@
         "dependencies": [
           5
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
             "title": "Analyze Rego Policy for Edge Cases",
             "description": "Systematically review the `kafkatopic_naming.rego` policy to identify potential loopholes, missed scenarios, or edge cases not covered by the initial implementation.",
             "dependencies": [],
-            "details": "Examine the policy's logic against various potential `KafkaTopic` manifest structures. Consider scenarios like missing metadata, different API versions, and names that might incorrectly pass or fail the current validation rules. Document all findings.",
-            "status": "pending",
+            "details": "Examine the policy's logic against various potential `KafkaTopic` manifest structures. Consider scenarios like missing metadata, different API versions, and names that might incorrectly pass or fail the current validation rules. Document all findings.\n<info added on 2025-07-29T13:17:41.978Z>\n**Analysis Findings:**\n\n1.  **Missing Metadata Field**: The policy doesn't check if `input.metadata` exists before trying to access `input.metadata.name`. This could cause undefined variable errors if a KafkaTopic is malformed.\n2.  **Null or Empty Name**: The policy doesn't specifically handle null or empty names. While the regex will fail these cases, a more specific error message would be helpful.\n3.  **Case Sensitivity**: The regex pattern doesn't clarify case sensitivity requirements. A name like \"Demo-Topic-123\" would fail, but the error message doesn't explain why.\n4.  **Multiple Resources in File**: The policy doesn't handle the case where multiple resources are in a single file but only some are KafkaTopics.\n5.  **Error Message Detail**: The error messages could be more helpful by suggesting valid examples and explaining exactly which part of the pattern failed.\n6.  **API Version Check**: There's no validation for the API version of the KafkaTopic resource. Different versions might have different structure/requirements.\n7.  **Input Type Validation**: The policy assumes input is either a single object or an array of objects, but doesn't validate this assumption.\n8.  **Regex Function**: The policy uses `regex.match()` function which might not be available in all OPA environments. The standard is `re_match()`.\n</info added on 2025-07-29T13:17:41.978Z>",
+            "status": "done",
             "testStrategy": "Manually review the Rego code and compare it against a checklist of potential edge cases (e.g., empty name, name with special characters, multi-segment names)."
           },
           {
@@ -197,8 +197,8 @@
             "title": "Update Rego Policy to Address Identified Gaps",
             "description": "Modify the `kafkatopic_naming.rego` file to incorporate the logic required to handle the edge cases and scenarios identified during the analysis phase.",
             "dependencies": [],
-            "details": "Refine the regular expressions or add conditional logic to the `deny` rule to make the policy more robust. Ensure the policy correctly handles all identified edge cases while still enforcing the core naming convention.",
-            "status": "pending",
+            "details": "Refine the regular expressions or add conditional logic to the `deny` rule to make the policy more robust. Ensure the policy correctly handles all identified edge cases while still enforcing the core naming convention.\n<info added on 2025-07-29T13:20:31.371Z>\nThe Rego policy has been updated to address all identified edge cases, making it more robust and user-friendly. Key improvements include:\n- **Input Type Validation**: Added validation to check if the input is a valid object or array.\n- **Missing Metadata Handling**: Added specific rules to detect and report when the `metadata` field is missing.\n- **Missing Name Handling**: Added explicit checks for missing `name` fields within metadata.\n- **Improved Error Messages**: Enhanced messages with more detail about the specific validation failure and included examples of valid names.\n- **Specific Validation Errors**: A new helper function, `get_validation_error()`, provides detailed information about exactly which part of the name validation failed (e.g., empty name, wrong prefix, missing numbers).\n- **Fixed Regex Function**: Replaced `regex.match()` with the standard `re_match()` function for better compatibility.\n- **Better Array Handling**: Improved error messages for array inputs to include the index of the invalid KafkaTopic.\n- **Comprehensive Error Cases**: Added specific error handling for all identified edge cases.\n</info added on 2025-07-29T13:20:31.371Z>",
+            "status": "done",
             "testStrategy": "Use `opa eval` with test manifests specifically designed to trigger the previously identified edge cases and confirm the policy now behaves as expected."
           },
           {
@@ -206,8 +206,8 @@
             "title": "Refactor `deny` Rule for Dynamic Error Message Generation",
             "description": "Modify the `deny` rule in `kafkatopic_naming.rego` to produce a detailed, dynamic failure message that includes the resource name and the specific reason for non-compliance.",
             "dependencies": [],
-            "details": "Change the `deny` rule to return a formatted string. Use `sprintf` or string concatenation to construct a message like: 'KafkaTopic \"{resource_name}\" is non-compliant. Reason: {failure_reason}'.",
-            "status": "pending",
+            "details": "Change the `deny` rule to return a formatted string. Use `sprintf` or string concatenation to construct a message like: 'KafkaTopic \"{resource_name}\" is non-compliant. Reason: {failure_reason}'.\n<info added on 2025-07-29T13:37:00.300Z>\nThis subtask was completed as part of the comprehensive policy update in subtask 6.2. The implementation includes a dedicated `get_validation_error()` helper function to provide specific failure reasons. The `deny` rule now uses `sprintf` to generate context-aware, detailed error messages that include the resource name, the specific reason for failure (e.g., \"must end with one or more digits\"), and an example of a valid name, providing highly specific and actionable feedback.\n</info added on 2025-07-29T13:37:00.300Z>",
+            "status": "done",
             "testStrategy": "Run `opa eval` against an invalid manifest and inspect the JSON output to ensure the `deny` field contains the complete, correctly formatted error message."
           },
           {
@@ -215,8 +215,8 @@
             "title": "Configure GitHub Actions Step to Capture and Display OPA Errors",
             "description": "Update the `opa-validation.yml` workflow to correctly parse the output from the OPA evaluation and surface the detailed error messages in the GitHub Actions run logs.",
             "dependencies": [],
-            "details": "Modify the script in the validation step to check if the OPA evaluation produced any `deny` messages. If denials exist, print each message to standard error and fail the workflow step with a non-zero exit code.",
-            "status": "pending",
+            "details": "Modify the script in the validation step to check if the OPA evaluation produced any `deny` messages. If denials exist, print each message to standard error and fail the workflow step with a non-zero exit code.\n<info added on 2025-07-29T13:38:48.989Z>\nUpon review of the `.github/workflows/opa-validation.yml` file, it was determined that no changes were required. The existing implementation already correctly captures and displays OPA denial messages. The script uses `opa eval --fail` to detect a failure, then explicitly runs a second `opa eval` command against the `deny` rule to print the detailed, dynamic error messages. The workflow correctly sets a failure flag and exits with a non-zero status code, ensuring that the enhanced error messages from the refactored Rego policy are surfaced in the GitHub Actions logs as intended.\n</info added on 2025-07-29T13:38:48.989Z>",
+            "status": "done",
             "testStrategy": "Run the validation script locally, pointing it to the OPA policy and an invalid manifest, and verify it prints the error message and exits with a status of 1."
           },
           {
@@ -224,8 +224,8 @@
             "title": "Perform Local End-to-End Validation of Error Reporting",
             "description": "Create a comprehensive set of test `KafkaTopic` manifests (both valid and invalid) and run the entire local validation script to confirm the refined policy and error reporting work together correctly.",
             "dependencies": [],
-            "details": "Create several YAML files containing `KafkaTopic` resources that violate the naming policy in different ways. Execute the validation script against these files and verify that for each violation, the correct, specific error message is displayed.",
-            "status": "pending",
+            "details": "Create several YAML files containing `KafkaTopic` resources that violate the naming policy in different ways. Execute the validation script against these files and verify that for each violation, the correct, specific error message is displayed.\n<info added on 2025-07-29T13:54:14.852Z>\nValidation testing is complete. The OPA policy correctly validates single-document YAML files and provides specific error messages for the following verified failures:\n*   Empty name: \"KafkaTopic name '' is invalid: name cannot be empty\"\n*   Wrong prefix: \"KafkaTopic name 'wrong-prefix-123' is invalid: must start with 'demo-topic-'\"\n*   Wrong suffix: \"KafkaTopic name 'demo-topic-abc' is invalid: must end with one or more digits after 'demo-topic-'\"\n*   Missing metadata: \"KafkaTopic is missing required 'metadata' field\"\n\nA comprehensive test suite and an automation script (`validate_kafkatopics.sh`) have been created.\n\n**LIMITATION DISCOVERED:** The current OPA validation process only evaluates the *first* document in a multi-document YAML file; subsequent documents are ignored. This does not affect the GitHub Actions workflow, which processes files individually, but it should be documented as a known limitation for users performing local validation on multi-document files.\n</info added on 2025-07-29T13:54:14.852Z>",
+            "status": "done",
             "testStrategy": "Execute the local validation script against a directory of test manifests and confirm that the script fails and the output log contains precise error messages for each non-compliant resource."
           }
         ]
@@ -241,7 +241,61 @@
           6
         ],
         "status": "pending",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Prepare Test Environment and Feature Branch",
+            "description": "Set up the local development environment and create a new Git branch for the test.",
+            "dependencies": [],
+            "details": "Steps:\n1. Ensure local Git repository is synchronized with the `main` or `master` branch (`git checkout main && git pull`).\n2. Create a new feature branch for this test (`git checkout -b feature/test-compliant-kafka-topic`).\nAcceptance Criteria: A new Git branch named `feature/test-compliant-kafka-topic` is created and checked out locally, reflecting the latest state of the main branch.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 2,
+            "title": "Create Kubernetes Manifest with Compliant KafkaTopic",
+            "description": "Generate a Kubernetes manifest file containing one or more `KafkaTopic` resources that strictly adhere to the defined naming convention (`^demo-topic-[0-9]+$`).",
+            "dependencies": [
+              "7.1"
+            ],
+            "details": "Steps:\n1. Create a new directory `test-resources/` if it doesn't exist.\n2. Inside `test-resources/`, create a new YAML file, e.g., `compliant-kafka-topic.yaml`.\n3. Add a `KafkaTopic` resource definition to `compliant-kafka-topic.yaml` with `metadata.name` matching the `^demo-topic-[0-9]+$` regex (e.g., `name: demo-topic-123`).\n4. Ensure the manifest is syntactically valid Kubernetes YAML.\nAcceptance Criteria: A file `test-resources/compliant-kafka-topic.yaml` exists, containing at least one `KafkaTopic` resource whose `metadata.name` field is `demo-topic-` followed by one or more digits.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 3,
+            "title": "Commit Compliant Resources and Open Pull Request",
+            "description": "Commit the newly created compliant `KafkaTopic` manifest to the feature branch and open a pull request targeting the `main` or `master` branch.",
+            "dependencies": [
+              "7.2"
+            ],
+            "details": "Steps:\n1. Add the `test-resources/compliant-kafka-topic.yaml` file to the Git staging area (`git add test-resources/compliant-kafka-topic.yaml`).\n2. Commit the changes with a descriptive message (`git commit -m \"feat: Add compliant KafkaTopic for workflow positive test\"`).\n3. Push the feature branch to the remote repository (`git push origin feature/test-compliant-kafka-topic`).\n4. Navigate to GitHub and open a new pull request from `feature/test-compliant-kafka-topic` to `main` (or `master`).\nAcceptance Criteria: A pull request is successfully opened on GitHub, originating from `feature/test-compliant-kafka-topic` and targeting `main`, containing the `compliant-kafka-topic.yaml` file.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 4,
+            "title": "Verify GitHub Actions Workflow Execution and Success",
+            "description": "Monitor the GitHub Actions workflow triggered by the pull request and confirm that it completes successfully without any validation errors.",
+            "dependencies": [
+              "7.3"
+            ],
+            "details": "Steps:\n1. Navigate to the \"Actions\" tab in the GitHub repository for the opened pull request.\n2. Locate the workflow run associated with the `opa-validation.yml` workflow.\n3. Observe the workflow progress, ensuring all steps, particularly the OPA validation step, execute and pass.\n4. Review the workflow logs to confirm no errors or unexpected warnings are reported by the OPA validation.\nAcceptance Criteria: The GitHub Actions workflow run for the pull request completes with a \"Success\" status, and the OPA validation step explicitly indicates that the `KafkaTopic` resources are compliant.",
+            "status": "pending",
+            "testStrategy": "Observe the GitHub Actions workflow run for the opened pull request and confirm its successful completion, specifically verifying the OPA validation step passes as expected for compliant resources."
+          },
+          {
+            "id": 5,
+            "title": "Document Test Results and Clean Up Test Branch",
+            "description": "Record the outcome of the test, including relevant links or screenshots, and clean up the test branch and resources.",
+            "dependencies": [
+              "7.4"
+            ],
+            "details": "Steps:\n1. Document the successful test run, including a link to the specific GitHub Actions workflow run and a screenshot of the successful status.\n2. Note any specific observations or details from the workflow logs.\n3. Close the pull request on GitHub (if not merged).\n4. Delete the remote feature branch (`git push origin --delete feature/test-compliant-kafka-topic`).\n5. Delete the local feature branch (`git branch -D feature/test-compliant-kafka-topic`).\n6. Remove the `test-resources/compliant-kafka-topic.yaml` file locally.\nAcceptance Criteria: The test results are clearly documented (e.g., in a test report or task comment). The `feature/test-compliant-kafka-topic` branch is deleted from both local and remote repositories, and the test manifest file is removed.",
+            "status": "pending",
+            "testStrategy": ""
+          }
+        ]
       },
       {
         "id": 8,
@@ -286,7 +340,11 @@
     ],
     "metadata": {
       "created": "2025-07-29T08:08:26.040Z",
+<<<<<<< HEAD
       "updated": "2025-07-29T12:59:15.406Z",
+=======
+      "updated": "2025-07-29T13:58:01.126Z",
+>>>>>>> 37b49031fc43d86bd0ff2d0509af9cfe2ff1224a
       "description": "Tasks for master context"
     }
   }

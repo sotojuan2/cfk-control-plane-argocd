@@ -1,8 +1,12 @@
 apiVersion: platform.confluent.io/v1beta1
 kind: KafkaTopic
 metadata:
+<<<<<<< HEAD
 <<<<<<< Updated upstream
   name: demo-topic-4
+=======
+  name: demo-topic-33
+>>>>>>> 37b49031fc43d86bd0ff2d0509af9cfe2ff1224a
   namespace: confluent
 spec:
   replicas: 3

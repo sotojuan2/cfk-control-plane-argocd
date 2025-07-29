@@ -27,6 +27,23 @@ jobs:
 
       - name: Set up OPA
         uses: open-policy-agent/setup-opa@v2
+        with:
+          version: '0.70.0'
+
+      # Test the OPA validation with a hardcoded path first (for Task 5.4 testing)
+      - name: Test OPA validation with hardcoded path
+        run: |
+          echo "Testing validation with hardcoded test manifest"
+          # Using a known test manifest file for validation testing
+          TEST_FILE="policies/topics_valid.yml"
+          
+          if [[ -f "$TEST_FILE" ]]; then
+            echo "Validating $TEST_FILE..."
+            opa eval --fail --input "$TEST_FILE" --data policies/kafkatopic_naming.rego 'data.kafkatopic_naming.allow'
+            echo "✅ Test validation successful"
+          else
+            echo "❌ Test file $TEST_FILE not found. This is just a test step, continuing workflow."
+          fi
 
       # Test the OPA validation with a hardcoded path first (for Task 5.4 testing)
       - name: Test OPA validation with hardcoded path
@@ -60,16 +77,18 @@ jobs:
               if grep -q "kind: KafkaTopic" "$file"; then
                 echo "Found KafkaTopic in $file, running OPA validation..."
                 
-                # Run OPA validation
-                if ! opa eval --fail --input "$file" --data policies/kafkatopic_naming.rego 'data.kafkatopic_naming.allow'; then
+                # Run OPA validation - check if allow is true
+                allow_result=$(opa eval --input "$file" --data policies/kafkatopic_naming.rego 'data.kafkatopic_naming.allow' --format raw)
+                
+                if [ "$allow_result" = "true" ]; then
+                  echo "✅ Validation passed for $file"
+                else
                   echo "❌ Validation failed for $file"
                   validation_failed=true
                   
                   # Show the specific deny messages
                   echo "Denial reasons:"
-                  opa eval --input "$file" --data policies/kafkatopic_naming.rego 'data.kafkatopic_naming.deny'
-                else
-                  echo "✅ Validation passed for $file"
+                  opa eval --input "$file" --data policies/kafkatopic_naming.rego 'data.kafkatopic_naming.deny' --format pretty
                 fi
               else
                 echo "Skipping $file (not a KafkaTopic resource)"

@@ -1,0 +1,45 @@
+{
+	"meta": {
+		"generatedAt": "2025-07-29T14:03:08.785Z",
+		"tasksAnalyzed": 4,
+		"totalTasks": 10,
+		"analysisCount": 4,
+		"thresholdScore": 5,
+		"projectName": "Taskmaster",
+		"usedResearch": true
+	},
+	"complexityAnalysis": [
+		{
+			"taskId": 7,
+			"taskTitle": "Test Workflow with Compliant Resources (Positive Case)",
+			"complexityScore": 4,
+			"recommendedSubtasks": 5,
+			"expansionPrompt": "Break down the end-to-end testing of the GitHub Actions workflow with compliant KafkaTopic resources into actionable steps, covering environment setup, manifest creation, PR submission, workflow monitoring, and cleanup.",
+			"reasoning": "This task is an end-to-end test of a pre-existing workflow. While it involves multiple steps (Git operations, file creation, PR, CI monitoring), each step is well-defined and generally low-risk. The existing 5 subtasks adequately cover the necessary actions, making it a medium complexity task that is well-structured."
+		},
+		{
+			"taskId": 8,
+			"taskTitle": "Test Workflow with Non-Compliant Resources (Negative Case)",
+			"complexityScore": 5,
+			"recommendedSubtasks": 5,
+			"expansionPrompt": "Break down the end-to-end testing of the GitHub Actions workflow with non-compliant KafkaTopic resources into actionable steps, covering environment setup, manifest creation with invalid data, PR submission, workflow monitoring for expected failure and error messages, and cleanup.",
+			"reasoning": "This task is a direct counterpart to Task 7, involving similar steps but with the expectation of a controlled failure. The complexity is slightly higher due to the need to verify specific error messages and failure states, which requires careful observation and validation. 5 subtasks, mirroring the structure of Task 7, would provide a clear and comprehensive breakdown."
+		},
+		{
+			"taskId": 9,
+			"taskTitle": "Decommission Gatekeeper Policy and Constraint",
+			"complexityScore": 7,
+			"recommendedSubtasks": 6,
+			"expansionPrompt": "Break down the decommissioning of the Gatekeeper policy and constraint into actionable steps, including coordination with the cluster operations team, removal from the repository, removal from the cluster, and thorough verification that the policy is no longer active.",
+			"reasoning": "This task involves cross-team coordination (with cluster operations), direct interaction with a production-like Kubernetes cluster, and a critical verification step (ensuring the old policy is truly gone without impacting new validation). Decommissioning active policies requires careful planning and execution to avoid service disruption. A breakdown into 6 subtasks would cover coordination, execution, and thorough verification, aligning with best practices for decommissioning critical components."
+		},
+		{
+			"taskId": 10,
+			"taskTitle": "Update Documentation (README.md)",
+			"complexityScore": 3,
+			"recommendedSubtasks": 4,
+			"expansionPrompt": "Break down the task of updating the `README.md` documentation to reflect the new KafkaTopic validation process, including content drafting, review, and publication.",
+			"reasoning": "This is a standard documentation update. While accuracy, clarity, and completeness for the target audience are important, the technical implementation is minimal. It primarily involves content creation and review. 3-4 subtasks are sufficient to cover content drafting, review, and publication, making it a low complexity task."
+		}
+	]
+}
