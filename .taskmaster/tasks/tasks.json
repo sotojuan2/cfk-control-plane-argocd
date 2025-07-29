@@ -248,7 +248,7 @@
             "description": "Set up the local development environment and create a new Git branch for the test.",
             "dependencies": [],
             "details": "Steps:\n1. Ensure local Git repository is synchronized with the `main` or `master` branch (`git checkout main && git pull`).\n2. Create a new feature branch for this test (`git checkout -b feature/test-compliant-kafka-topic`).\nAcceptance Criteria: A new Git branch named `feature/test-compliant-kafka-topic` is created and checked out locally, reflecting the latest state of the main branch.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {
@@ -259,7 +259,7 @@
               "7.1"
             ],
             "details": "Steps:\n1. Create a new directory `test-resources/` if it doesn't exist.\n2. Inside `test-resources/`, create a new YAML file, e.g., `compliant-kafka-topic.yaml`.\n3. Add a `KafkaTopic` resource definition to `compliant-kafka-topic.yaml` with `metadata.name` matching the `^demo-topic-[0-9]+$` regex (e.g., `name: demo-topic-123`).\n4. Ensure the manifest is syntactically valid Kubernetes YAML.\nAcceptance Criteria: A file `test-resources/compliant-kafka-topic.yaml` exists, containing at least one `KafkaTopic` resource whose `metadata.name` field is `demo-topic-` followed by one or more digits.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {
@@ -270,7 +270,7 @@
               "7.2"
             ],
             "details": "Steps:\n1. Add the `test-resources/compliant-kafka-topic.yaml` file to the Git staging area (`git add test-resources/compliant-kafka-topic.yaml`).\n2. Commit the changes with a descriptive message (`git commit -m \"feat: Add compliant KafkaTopic for workflow positive test\"`).\n3. Push the feature branch to the remote repository (`git push origin feature/test-compliant-kafka-topic`).\n4. Navigate to GitHub and open a new pull request from `feature/test-compliant-kafka-topic` to `main` (or `master`).\nAcceptance Criteria: A pull request is successfully opened on GitHub, originating from `feature/test-compliant-kafka-topic` and targeting `main`, containing the `compliant-kafka-topic.yaml` file.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {
@@ -340,11 +340,7 @@
     ],
     "metadata": {
       "created": "2025-07-29T08:08:26.040Z",
-<<<<<<< HEAD
-      "updated": "2025-07-29T12:59:15.406Z",
-=======
-      "updated": "2025-07-29T13:58:01.126Z",
->>>>>>> 37b49031fc43d86bd0ff2d0509af9cfe2ff1224a
+      "updated": "2025-07-29T14:41:10.642Z",
       "description": "Tasks for master context"
     }
   }

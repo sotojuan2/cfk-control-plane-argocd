@@ -1,0 +1,200 @@
+Run echo "Testing validation with hardcoded test manifest"
+  echo "Testing validation with hardcoded test manifest"
+  # Using a known test manifest file for validation testing
+  TEST_FILE="policies/topics_valid.yml"
+  
+  if [[ -f "$TEST_FILE" ]]; then
+    echo "Validating $TEST_FILE..."
+    opa eval --fail --input "$TEST_FILE" --data policies/kafkatopic_naming.rego 'data.kafkatopic_naming.allow'
+    echo "✅ Test validation successful"
+  else
+    echo "❌ Test file $TEST_FILE not found. This is just a test step, continuing workflow."
+  fi
+  shell: /usr/bin/bash -e {0}
+Testing validation with hardcoded test manifest
+Validating policies/topics_valid.yml...
+{
+  "errors": [
+    {
+      "message": "`if` keyword is required before rule body",
+      "code": "rego_parse_error",
+      "location": {
+        "file": "policies/kafkatopic_naming.rego",
+        "row": 6,
+        "col": 1
+      }
+    },
+    {
+      "message": "`if` keyword is required before rule body",
+      "code": "rego_parse_error",
+      "location": {
+        "file": "policies/kafkatopic_naming.rego",
+        "row": 11,
+        "col": 1
+      }
+    },
+    {
+      "message": "`contains` keyword is required for partial set rules",
+      "code": "rego_parse_error",
+      "location": {
+        "file": "policies/kafkatopic_naming.rego",
+        "row": 11,
+        "col": 1
+      }
+    },
+    {
+      "message": "`if` keyword is required before rule body",
+      "code": "rego_parse_error",
+      "location": {
+        "file": "policies/kafkatopic_naming.rego",
+        "row": 18,
+        "col": 1
+      }
+    },
+    {
+      "message": "`contains` keyword is required for partial set rules",
+      "code": "rego_parse_error",
+      "location": {
+        "file": "policies/kafkatopic_naming.rego",
+        "row": 18,
+        "col": 1
+      }
+    },
+    {
+      "message": "`if` keyword is required before rule body",
+      "code": "rego_parse_error",
+      "location": {
+        "file": "policies/kafkatopic_naming.rego",
+        "row": 25,
+        "col": 1
+      }
+    },
+    {
+      "message": "`contains` keyword is required for partial set rules",
+      "code": "rego_parse_error",
+      "location": {
+        "file": "policies/kafkatopic_naming.rego",
+        "row": 25,
+        "col": 1
+      }
+    },
+    {
+      "message": "`if` keyword is required before rule body",
+      "code": "rego_parse_error",
+      "location": {
+        "file": "policies/kafkatopic_naming.rego",
+        "row": 33,
+        "col": 1
+      }
+    },
+    {
+      "message": "`contains` keyword is required for partial set rules",
+      "code": "rego_parse_error",
+      "location": {
+        "file": "policies/kafkatopic_naming.rego",
+        "row": 33,
+        "col": 1
+      }
+    },
+    {
+      "message": "`if` keyword is required before rule body",
+      "code": "rego_parse_error",
+      "location": {
+        "file": "policies/kafkatopic_naming.rego",
+        "row": 43,
+        "col": 1
+      }
+    },
+    {
+      "message": "`contains` keyword is required for partial set rules",
+      "code": "rego_parse_error",
+      "location": {
+        "file": "policies/kafkatopic_naming.rego",
+        "row": 43,
+        "col": 1
+      }
+    },
+    {
+      "message": "`if` keyword is required before rule body",
+      "code": "rego_parse_error",
+      "location": {
+        "file": "policies/kafkatopic_naming.rego",
+        "row": 52,
+        "col": 1
+      }
+    },
+    {
+      "message": "`contains` keyword is required for partial set rules",
+      "code": "rego_parse_error",
+      "location": {
+        "file": "policies/kafkatopic_naming.rego",
+        "row": 52,
+        "col": 1
+      }
+    },
+    {
+      "message": "`if` keyword is required before rule body",
+      "code": "rego_parse_error",
+      "location": {
+        "file": "policies/kafkatopic_naming.rego",
+        "row": 62,
+        "col": 1
+      }
+    },
+    {
+      "message": "`contains` keyword is required for partial set rules",
+      "code": "rego_parse_error",
+      "location": {
+        "file": "policies/kafkatopic_naming.rego",
+        "row": 62,
+        "col": 1
+      }
+    },
+    {
+      "message": "`if` keyword is required before function body",
+      "code": "rego_parse_error",
+      "location": {
+        "file": "policies/kafkatopic_naming.rego",
+        "row": 74,
+        "col": 1
+      }
+    },
+    {
+      "message": "`if` keyword is required before function body",
+      "code": "rego_parse_error",
+      "location": {
+        "file": "policies/kafkatopic_naming.rego",
+        "row": 79,
+        "col": 1
+      }
+    },
+    {
+      "message": "`if` keyword is required before function body",
+      "code": "rego_parse_error",
+      "location": {
+        "file": "policies/kafkatopic_naming.rego",
+        "row": 82,
+        "col": 3
+      }
+    },
+    {
+      "message": "`if` keyword is required before function body",
+      "code": "rego_parse_error",
+      "location": {
+        "file": "policies/kafkatopic_naming.rego",
+        "row": 85,
+        "col": 3
+      }
+    },
+    {
+      "message": "`if` keyword is required before function body",
+      "code": "rego_parse_error",
+      "location": {
+        "file": "policies/kafkatopic_naming.rego",
+        "row": 89,
+        "col": 3
+      }
+    }
+  ]
+}
+Error: Process completed with exit code 2.
