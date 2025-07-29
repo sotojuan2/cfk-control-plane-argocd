@@ -1,22 +1,25 @@
-package kafkatopic.naming
+  package kafkatopic_naming
 
-# Support for both single object and array of objects (as in multi-document YAML)
+# Default to allow, unless a deny rule matches
+default allow = true
+
+# Deny if any topic name is invalid
 deny[msg] {
-  some i
-  topic := input[i]
-  topic.kind == "KafkaTopic"
-  name := topic.metadata.name
-  not valid_name(name)
-  msg := sprintf("Kafka topic name '%v' does not follow the required naming pattern", [name])
+    # Handle both single object and array of objects (multi-document YAML)
+    topics := is_array(input) ? input : [input]
+    some i
+    topic := topics[i]
+
+    topic.kind == "KafkaTopic"
+    name := topic.metadata.name
+    not valid_topic_name(name)
+    msg := sprintf("KafkaTopic name '%s' is invalid. It must match the pattern '^demo-topic-[0-9]+$'.", [name])
 }
 
-deny[msg] {
-  input.kind == "KafkaTopic"
-  name := input.metadata.name
-  not valid_name(name)
-  msg := sprintf("Kafka topic name '%v' does not follow the required naming pattern", [name])
+# Helper function to validate the name
+valid_topic_name(name) {
+    re_match("^demo-topic-[0-9]+$", name)
 }
 
-valid_name(name) {
-  re_match("^demo-topic-[0-9]+$", name)
+re_match("^demo-topic-[0-9]+$", name)
 }
