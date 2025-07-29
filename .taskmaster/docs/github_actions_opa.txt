@@ -1,0 +1,93 @@
+
+# **PRD: Migrate KafkaTopic Validation from Gatekeeper to OPA-based GitHub Actions**
+
+  * **Author:** Juan Soto
+  * **Date:** 2024-07-29
+  * **Version:** 1.0
+
+-----
+
+## **1. Introduction**
+
+This document outlines the requirements for migrating the validation of `KafkaTopic` custom resources from a cluster-based Gatekeeper policy to a CI/CD-based approach using **GitHub Actions and Open Policy Agent (OPA)**. This change affects the `cfk-control-plane-argocd` repository and aims to improve the developer workflow by providing earlier feedback on policy compliance.
+
+## **2. Problem Statement**
+
+Currently, the validation for `KafkaTopic` naming conventions is enforced at deploy time by **Gatekeeper** running in the Kubernetes cluster. The policy is defined in the `gatekeeper/kafkatopic-naming-template.yaml` file.
+
+This approach has two main drawbacks:
+
+1.  **Late Feedback:** Developers only discover that their topic names are non-compliant after attempting to deploy their changes via ArgoCD. This creates friction and slows down the development cycle.
+2.  **Operational Overhead:** Managing Gatekeeper policies directly within the cluster requires specific expertise and adds to the operational complexity of the control plane.
+
+Shifting validation to the CI pipeline will allow us to "shift-left" our policy enforcement, providing instant feedback to developers in their pull requests.
+
+## **3. Goals and Objectives**
+
+  * **Primary Goal:** Replace the existing Gatekeeper validation for `KafkaTopic` naming with a policy check in a GitHub Actions workflow.
+  * **Key Objectives:**
+      * Provide developers with validation feedback directly in their pull requests.
+      * Reduce the time it takes to identify and fix non-compliant resource definitions.
+      * Remove the dependency on the in-cluster Gatekeeper for this specific policy.
+      * Maintain the same or equivalent validation logic as currently defined in `kafkatopic-naming-template.yaml`.
+
+## **4. Scope**
+
+### **In Scope:**
+
+  * Creating a new GitHub Actions workflow.
+  * Writing an OPA (Rego) policy that mirrors the logic of the current `kafkatopic-naming-template.yaml`.
+  * The workflow will trigger on pull requests that modify Kubernetes manifest files (`.yaml` or `.yml`).
+  * The workflow will check all `KafkaTopic` resources in the modified files against the OPA policy.
+  * Decommissioning the `kafkatopic-naming-template.yaml` and its corresponding `Constraint` from the cluster.
+
+### **Out of Scope:**
+
+  * Migrating any other Gatekeeper policies. This project is limited to the `KafkaTopic` naming convention.
+  * Changing the naming convention policy itself. The logic will be ported as-is.
+  * Implementing auto-remediation of non-compliant resources. The action will only serve to `pass` or `fail` the check.
+
+## **5. Proposed Solution**
+
+We will implement a new GitHub Actions workflow file (e.g., `.github/workflows/opa-validation.yml`). This workflow will perform the following steps on every pull request:
+
+1.  **Checkout Code:** The workflow will check out the source code of the pull request.
+2.  **Identify Changed Manifests:** It will identify all changed Kubernetes manifest files (`.yaml`).
+3.  **Run OPA Validation:** For each `KafkaTopic` resource found in the changed files, it will execute an OPA policy check.
+      * **Policy:** A new Rego policy file (`policies/kafkatopic_naming.rego`) will be created in the repository. This policy will enforce the required naming convention (e.g., must match a specific regex).
+      * **Execution:** The workflow will use a standard OPA action from the GitHub Marketplace (like `open-policy-agent/opa-check`) to run the validation.
+4.  **Report Status:**
+      * If all `KafkaTopic` resources are compliant, the workflow will succeed.
+      * If any resource is non-compliant, the workflow will fail, blocking the pull request from being merged and providing clear output on which resource failed and why.
+
+### **Example Rego Policy (`policies/kafkatopic_naming.rego`)**
+
+```rego
+package kubernetes.kafkatopic
+
+deny[msg] {
+    # Check if the input is a KafkaTopic
+    input.kind == "KafkaTopic"
+    
+    # The name of the KafkaTopic resource
+    topic_name := input.metadata.name
+    
+    # Regex to enforce your naming convention 
+    # (This is an example, please replace with your actual regex)
+    # Example: requires topics to start with 'proj-team-'
+    re_match("^proj-team-.*", topic_name) == false
+    
+    msg := sprintf("KafkaTopic name '%v' is invalid. Name must start with 'proj-team-'.", [topic_name])
+}
+```
+
+## **6. Acceptance Criteria**
+
+The project will be considered complete when:
+
+  * A GitHub Actions workflow exists that automatically validates `KafkaTopic` resources on pull requests.
+  * The workflow correctly **fails** a pull request if a `KafkaTopic` resource has an invalid name.
+  * The workflow correctly **passes** a pull request when all `KafkaTopic` resources have valid names.
+  * The failure message clearly indicates which topic is non-compliant and why.
+  * The old `kafkatopic-naming-template.yaml` file and its associated Gatekeeper `Constraint` have been safely removed from the repository and the cluster.
+  * Documentation (`README.md`) is updated to reflect the new validation process.

@@ -1,0 +1,293 @@
+{
+  "master": {
+    "tasks": [
+      {
+        "id": 1,
+        "title": "Analyze Existing Gatekeeper Policy",
+        "description": "Understand the exact naming convention enforced by the current Gatekeeper policy (`gatekeeper/kafkatopic-naming-template.yaml`). This is crucial for porting the logic to OPA.",
+        "details": "The file `gatekeeper/kafkatopic-naming-template.yaml` defines the KafkaTopic naming policy using the following regex: ^demo-topic-[0-9]+$.\n\n- Only names starting with 'demo-topic-' followed by one or more digits are allowed.\n- Valid example: demo-topic-123\n- Invalid examples: demo-topic-test, demo-topic-\n\nThe rule is implemented in Gatekeeper with Rego:\n\nvalid_name(name) {\n  re_match(\"^demo-topic-[0-9]+$\", name)\n}\n\nThe policy rejects any KafkaTopic whose name does not match this pattern and displays the message: 'Kafka topic name \"{name}\" does not follow the required naming pattern'.\n\nThis will serve as the basis for migration to OPA.",
+        "testStrategy": "N/A",
+        "priority": "high",
+        "dependencies": [],
+        "status": "done",
+        "subtasks": []
+      },
+      {
+        "id": 2,
+        "title": "Develop OPA Rego Policy for KafkaTopic Naming",
+        "description": "Write the Open Policy Agent (OPA) Rego policy (`policies/kafkatopic_naming.rego`) that mirrors the validation logic extracted from the Gatekeeper policy.",
+        "details": "The OPA Rego policy was created in `policies/kafkatopic_naming.rego` and correctly enforces the required naming convention for KafkaTopic resources.\n\nValidation results:\n- Manifest with valid name (`demo-topic-1`): No denial message, accepted.\n- Manifest with invalid name (`demo-topic-test`): Denial message returned as expected.\n\nThe policy supports Confluent CRD format and multi-document YAML files.",
+        "testStrategy": "Validated using `opa eval` with both valid and invalid KafkaTopic manifests.\n- Valid: No denial message.\n- Invalid: Denial message returned.",
+        "priority": "high",
+        "dependencies": [
+          1
+        ],
+        "status": "done",
+        "subtasks": []
+      },
+      {
+        "id": 3,
+        "title": "Create GitHub Actions Workflow File Structure",
+        "description": "Initialize the new GitHub Actions workflow file (`.github/workflows/opa-validation.yml`) to define the CI/CD pipeline for KafkaTopic validation.",
+        "details": "Set up the basic YAML structure for the workflow. Define the trigger (on pull requests targeting main/master), and a single job for validation.",
+        "testStrategy": "Commit an empty or minimal workflow file and observe if it triggers correctly on a dummy PR.",
+        "priority": "medium",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 4,
+        "title": "Implement Code Checkout and Changed Manifest Identification",
+        "description": "Add steps to the GitHub Actions workflow to checkout the repository code and identify only the changed Kubernetes manifest files (`.yaml`, `.yml`) within a pull request.",
+        "details": "Utilize `actions/checkout@v4` and a suitable action (e.g., `tj-actions/changed-files`) to get a list of modified files. Filter this list to include only relevant manifest files.",
+        "testStrategy": "Create a PR with changes to only non-manifest files and verify the workflow correctly identifies no relevant changes. Create a PR with manifest changes and verify the correct files are identified.",
+        "priority": "medium",
+        "dependencies": [
+          3
+        ],
+        "status": "deferred",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Design and Create User Database Schema",
+            "description": "Define and implement the database table structure for storing user information, including credentials and profile data.",
+            "dependencies": [],
+            "details": "Create a 'users' table using a database migration script. The table should include columns for 'id' (UUID, primary key), 'email' (unique, indexed), 'password_hash' (string), 'created_at', and 'updated_at'. Ensure the password hash column is sufficiently long.",
+            "status": "pending",
+            "testStrategy": "Run the migration and verify its successful application. Manually inspect the database schema to confirm all columns, constraints, and data types are correct. Write a rollback script and test it."
+          },
+          {
+            "id": 2,
+            "title": "Develop User Registration API Endpoint",
+            "description": "Create a public API endpoint (e.g., POST /api/v1/register) that allows new users to create an account.",
+            "dependencies": [],
+            "details": "The endpoint should accept an email and password. It must validate the input (e.g., strong password policy, valid email format), check if the email is already in use, hash the password using bcrypt, and store the new user record in the database. Return a 201 Created status on success.",
+            "status": "pending",
+            "testStrategy": "Write unit tests for the validation logic. Write integration tests to simulate API calls with valid data, duplicate emails, and invalid passwords. Assert the correct HTTP status codes and database state after each call."
+          },
+          {
+            "id": 3,
+            "title": "Implement User Login and JWT Generation",
+            "description": "Create an API endpoint (e.g., POST /api/v1/login) for users to authenticate and receive a JSON Web Token (JWT).",
+            "dependencies": [],
+            "details": "The endpoint will accept an email and password. It should find the user by email, verify the provided password against the stored hash using bcrypt. On successful verification, generate a signed JWT containing the user ID, role, and an expiration claim (e.g., 1 hour).",
+            "status": "pending",
+            "testStrategy": "Unit test the password verification logic separately. Write integration tests for the login endpoint with correct and incorrect credentials. For successful logins, decode the returned JWT and verify its payload and signature. For failed logins, assert a 401 Unauthorized status."
+          },
+          {
+            "id": 4,
+            "title": "Design and Create User Database Schema",
+            "description": "Define and implement the database table structure required to store user information, including credentials and profile data.",
+            "dependencies": [],
+            "details": "Create a 'users' table with columns for id (primary key), username (unique), email (unique), hashed_password, created_at, and updated_at. Use a database migration tool like Alembic or Flyway to manage schema changes.",
+            "status": "pending",
+            "testStrategy": "Verify the migration runs successfully. Manually inspect the database schema to confirm all columns and constraints are created as specified. Write a unit test to ensure the User model can be instantiated and saved to the database."
+          },
+          {
+            "id": 5,
+            "title": "Develop User Registration API Endpoint",
+            "description": "Create a public API endpoint (e.g., POST /api/register) that allows new users to sign up for an account.",
+            "dependencies": [],
+            "details": "The endpoint should accept a username, email, and password. It must validate the input (e.g., password strength, valid email format), check for existing username/email, hash the password using bcrypt, and then store the new user record in the database.",
+            "status": "pending",
+            "testStrategy": "Write integration tests to cover successful registration, registration with a duplicate username/email, and registration with invalid input (e.g., weak password). Verify that the stored password is not in plain text."
+          },
+          {
+            "id": 6,
+            "title": "Implement User Login and Token Generation",
+            "description": "Create an API endpoint (e.g., POST /api/login) for users to authenticate and receive an access token.",
+            "dependencies": [],
+            "details": "The endpoint should accept a username/email and password. It will find the user in the database and compare the provided password with the stored hash. If credentials are valid, generate a JSON Web Token (JWT) containing user identifiers (e.g., user ID) and return it to the client.",
+            "status": "pending",
+            "testStrategy": "Write integration tests for successful login with correct credentials, failed login with an incorrect password, and failed login for a non-existent user. Verify the structure and signature of the returned JWT."
+          }
+        ]
+      },
+      {
+        "id": 5,
+        "title": "Integrate OPA Validation Step into Workflow",
+        "description": "Add a step to the GitHub Actions workflow to execute the OPA Rego policy against the identified `KafkaTopic` resources.",
+        "details": "Incorporate a GitHub Marketplace action (e.g., `open-policy-agent/opa-check` or `actions/setup-opa` combined with `opa eval`) to run the `kafkatopic_naming.rego` policy. Ensure the action can process multiple manifest files.",
+        "testStrategy": "Run the workflow with a dummy KafkaTopic manifest and verify the OPA action is invoked and processes the input.",
+        "priority": "high",
+        "dependencies": [
+          2,
+          4
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Evaluate and Select OPA GitHub Action",
+            "description": "Research and compare the recommended GitHub Marketplace actions (`open-policy-agent/opa-check` vs. `actions/setup-opa` with `opa eval`) to determine the most suitable one for the project's needs, focusing on ease of configuration and performance when processing multiple manifest files.",
+            "dependencies": [],
+            "details": "Comparison:\n\n- open-policy-agent/opa-check:\n  - Simple configuration, supports multiple files, actively maintained.\n  - Best for straightforward validation workflows.\n- actions/setup-opa + opa eval:\n  - Full control, flexible, but requires manual scripting and setup.\n\nDecision: Use `open-policy-agent/opa-check` for this project due to its simplicity and native support for multiple input files.\n\nDocumentation for both actions confirms support for passing a list of files as input.",
+            "status": "done",
+            "testStrategy": "Documentation reviewed for both actions. Confirmed support for multiple input files. Decision recorded."
+          },
+          {
+            "id": 2,
+            "title": "Implement File Discovery Logic in Workflow",
+            "description": "Add a preliminary step in the `opa-validation.yml` workflow to identify and list all relevant Kubernetes manifest files that have been changed in the pull request. This list will serve as the input for the OPA validation step.",
+            "dependencies": [],
+            "details": "Use a tool like `tj-actions/changed-files` or a custom `git diff` script to get a space-separated list of changed YAML/YML files. Store this list in a step output variable for later use.",
+            "status": "pending",
+            "testStrategy": "In a test PR, echo the output variable to the job log to ensure it correctly captures the paths of modified manifest files."
+          },
+          {
+            "id": 3,
+            "title": "Add the OPA Validation Step to Workflow YAML",
+            "description": "Incorporate the selected OPA GitHub Action as a new step within the validation job in the `.github/workflows/opa-validation.yml` file.",
+            "dependencies": [
+              "5.1"
+            ],
+            "details": "Add the `uses:` directive for the chosen action (e.g., `uses: open-policy-agent/opa-check@v1`). Ensure it is placed after the file discovery step.",
+            "status": "pending",
+            "testStrategy": "Commit the change and observe the workflow run to confirm the action is downloaded and initialized without syntax errors in the YAML."
+          },
+          {
+            "id": 4,
+            "title": "Configure OPA Action Parameters",
+            "description": "Configure the newly added OPA action step with the necessary inputs, including the path to the Rego policy and the list of manifest files to be evaluated.",
+            "dependencies": [
+              "5.2",
+              "5.3"
+            ],
+            "details": "Use the `with:` block to pass parameters. Set the policy path to `kafkatopic_naming.rego`. Pass the output variable from the file discovery step (subtask 5.2) as the input file list. Specify the Rego query to execute (e.g., `data.kafka.naming.deny`).",
+            "status": "pending",
+            "testStrategy": "Run the workflow with a hardcoded path to a single test manifest to verify the parameter passing mechanism works before using the dynamic list."
+          },
+          {
+            "id": 5,
+            "title": "Perform Initial Run with a Dummy Manifest",
+            "description": "Create a draft pull request containing a single, simple `KafkaTopic` manifest to perform a basic, low-impact test of the newly integrated OPA validation step.",
+            "dependencies": [
+              "5.4"
+            ],
+            "details": "The dummy manifest can be either compliant or non-compliant. The goal is not to test the policy logic itself, but to verify that the OPA action is invoked, correctly receives the manifest as input, and executes the policy against it, producing an exit code.",
+            "status": "pending",
+            "testStrategy": "Observe the workflow logs for the draft PR. Confirm the OPA step runs, logs that it is processing the dummy manifest file, and either passes or fails as expected based on the dummy file's content."
+          }
+        ]
+      },
+      {
+        "id": 6,
+        "title": "Refine OPA Policy and Enhance Error Reporting",
+        "description": "Ensure the OPA policy is robust and the workflow provides clear, actionable failure messages when a `KafkaTopic` resource is non-compliant.",
+        "details": "Review the Rego policy for any edge cases or missed scenarios. Configure the OPA validation step to output detailed messages, including the specific `KafkaTopic` name and the reason for failure, as required by acceptance criteria.",
+        "testStrategy": "Manually trigger the workflow with intentionally malformed KafkaTopic names and verify the error messages are precise and helpful.",
+        "priority": "high",
+        "dependencies": [
+          5
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Analyze Rego Policy for Edge Cases",
+            "description": "Systematically review the `kafkatopic_naming.rego` policy to identify potential loopholes, missed scenarios, or edge cases not covered by the initial implementation.",
+            "dependencies": [],
+            "details": "Examine the policy's logic against various potential `KafkaTopic` manifest structures. Consider scenarios like missing metadata, different API versions, and names that might incorrectly pass or fail the current validation rules. Document all findings.",
+            "status": "pending",
+            "testStrategy": "Manually review the Rego code and compare it against a checklist of potential edge cases (e.g., empty name, name with special characters, multi-segment names)."
+          },
+          {
+            "id": 2,
+            "title": "Update Rego Policy to Address Identified Gaps",
+            "description": "Modify the `kafkatopic_naming.rego` file to incorporate the logic required to handle the edge cases and scenarios identified during the analysis phase.",
+            "dependencies": [],
+            "details": "Refine the regular expressions or add conditional logic to the `deny` rule to make the policy more robust. Ensure the policy correctly handles all identified edge cases while still enforcing the core naming convention.",
+            "status": "pending",
+            "testStrategy": "Use `opa eval` with test manifests specifically designed to trigger the previously identified edge cases and confirm the policy now behaves as expected."
+          },
+          {
+            "id": 3,
+            "title": "Refactor `deny` Rule for Dynamic Error Message Generation",
+            "description": "Modify the `deny` rule in `kafkatopic_naming.rego` to produce a detailed, dynamic failure message that includes the resource name and the specific reason for non-compliance.",
+            "dependencies": [],
+            "details": "Change the `deny` rule to return a formatted string. Use `sprintf` or string concatenation to construct a message like: 'KafkaTopic \"{resource_name}\" is non-compliant. Reason: {failure_reason}'.",
+            "status": "pending",
+            "testStrategy": "Run `opa eval` against an invalid manifest and inspect the JSON output to ensure the `deny` field contains the complete, correctly formatted error message."
+          },
+          {
+            "id": 4,
+            "title": "Configure GitHub Actions Step to Capture and Display OPA Errors",
+            "description": "Update the `opa-validation.yml` workflow to correctly parse the output from the OPA evaluation and surface the detailed error messages in the GitHub Actions run logs.",
+            "dependencies": [],
+            "details": "Modify the script in the validation step to check if the OPA evaluation produced any `deny` messages. If denials exist, print each message to standard error and fail the workflow step with a non-zero exit code.",
+            "status": "pending",
+            "testStrategy": "Run the validation script locally, pointing it to the OPA policy and an invalid manifest, and verify it prints the error message and exits with a status of 1."
+          },
+          {
+            "id": 5,
+            "title": "Perform Local End-to-End Validation of Error Reporting",
+            "description": "Create a comprehensive set of test `KafkaTopic` manifests (both valid and invalid) and run the entire local validation script to confirm the refined policy and error reporting work together correctly.",
+            "dependencies": [],
+            "details": "Create several YAML files containing `KafkaTopic` resources that violate the naming policy in different ways. Execute the validation script against these files and verify that for each violation, the correct, specific error message is displayed.",
+            "status": "pending",
+            "testStrategy": "Execute the local validation script against a directory of test manifests and confirm that the script fails and the output log contains precise error messages for each non-compliant resource."
+          }
+        ]
+      },
+      {
+        "id": 7,
+        "title": "Test Workflow with Compliant Resources (Positive Case)",
+        "description": "Perform end-to-end testing of the GitHub Actions workflow by creating a pull request with valid `KafkaTopic` names to ensure it passes correctly.",
+        "details": "Create a new branch, add a Kubernetes manifest containing one or more `KafkaTopic` resources that fully comply with the defined naming convention. Open a pull request and verify the workflow completes successfully.",
+        "testStrategy": "Create a test PR with valid KafkaTopic manifests. Observe the GitHub Actions workflow run and confirm it passes.",
+        "priority": "high",
+        "dependencies": [
+          6
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 8,
+        "title": "Test Workflow with Non-Compliant Resources (Negative Case)",
+        "description": "Perform end-to-end testing of the GitHub Actions workflow by creating a pull request with invalid `KafkaTopic` names to ensure it fails as expected.",
+        "details": "Create a new branch, add a Kubernetes manifest containing one or more `KafkaTopic` resources that violate the defined naming convention. Open a pull request and verify the workflow fails, providing clear error messages.",
+        "testStrategy": "Create a test PR with invalid KafkaTopic manifests. Observe the GitHub Actions workflow run and confirm it fails with the expected error messages.",
+        "priority": "high",
+        "dependencies": [
+          6
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 9,
+        "title": "Decommission Gatekeeper Policy and Constraint",
+        "description": "Safely remove the old `kafkatopic-naming-template.yaml` file from the repository and its corresponding `Constraint` from the Kubernetes cluster.",
+        "details": "Coordinate with the cluster operations team to ensure the `Constraint` is removed from the cluster. Delete the `kafkatopic-naming-template.yaml` file from the `cfk-control-plane-argocd` repository.",
+        "testStrategy": "Verify the Gatekeeper policy is no longer active in the cluster. Attempt to deploy a non-compliant KafkaTopic directly to the cluster (outside ArgoCD) to confirm Gatekeeper no longer blocks it.",
+        "priority": "medium",
+        "dependencies": [
+          7,
+          8
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 10,
+        "title": "Update Documentation (README.md)",
+        "description": "Update the `README.md` file in the `cfk-control-plane-argocd` repository to reflect the new `KafkaTopic` validation process.",
+        "details": "Add a section explaining the shift-left validation using GitHub Actions and OPA. Provide instructions on how developers can check policy compliance and interpret workflow failures.",
+        "testStrategy": "Review the updated `README.md` for clarity, accuracy, and completeness regarding the new validation process.",
+        "priority": "low",
+        "dependencies": [
+          9
+        ],
+        "status": "pending",
+        "subtasks": []
+      }
+    ],
+    "metadata": {
+      "created": "2025-07-29T08:08:26.040Z",
+      "updated": "2025-07-29T09:59:49.526Z",
+      "description": "Tasks for master context"
+    }
+  }
+}

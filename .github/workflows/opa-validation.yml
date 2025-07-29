@@ -1,0 +1,29 @@
+name: KafkaTopic OPA Validation
+
+on:
+  pull_request:
+    branches:
+      - main
+      - master
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Placeholder for OPA validation
+        run: echo "OPA validation will be implemented here."
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Get changed manifest files
+        id: changed-files
+        uses: tj-actions/changed-files@v44
+        with:
+          files: |
+            **/*.yaml
+            **/*.yml
+
+      - name: Echo changed manifest files
+        run: |
+          echo "Changed manifest files: ${{ steps.changed-files.outputs.all_changed_files }}"
