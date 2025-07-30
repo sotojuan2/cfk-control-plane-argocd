@@ -307,7 +307,7 @@
         "dependencies": [
           6
         ],
-        "status": "in-progress",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -315,7 +315,7 @@
             "description": "Create a new Git branch specifically for testing the negative case of the KafkaTopic naming convention workflow. This branch will house the non-compliant manifest.",
             "dependencies": [],
             "details": "From the `main` or `master` branch, create a new branch (e.g., `feature/test-invalid-kafka-topic`).",
-            "status": "in-progress",
+            "status": "done",
             "testStrategy": "Verify the new branch is created successfully and is based on the correct parent branch."
           },
           {
@@ -325,8 +325,8 @@
             "dependencies": [
               "8.1"
             ],
-            "details": "Identify specific naming convention rules (e.g., no hyphens, must start with a letter, max length) and create `KafkaTopic` resources that break these rules. Examples: `my_invalid_topic`, `123topic`, `topic-too-long-name-that-exceeds-the-limit`.",
-            "status": "pending",
+            "details": "Identify specific naming convention rules (e.g., no hyphens, must start with a letter, max length) and create `KafkaTopic` resources that break these rules. Examples: `my_invalid_topic`, `123topic`, `topic-too-long-name-that-exceeds-the-limit`.\n<info added on 2025-07-30T13:15:17.561Z>\nCorrection: To ensure better compatibility with the OPA validation step, the implementation was changed from a single multi-document YAML file to three separate files. Each file contains a single `KafkaTopic` manifest designed to violate the established naming convention (`^demo-topic-[0-9]+$`) in a specific way:\n1.  `invalid-prefix-topic.yaml`: Contains the name \"invalid-topic-123\" to test for an incorrect prefix.\n2.  `invalid-suffix-topic.yaml`: Contains the name \"demo-topic-test\" to test for a non-numeric suffix.\n3.  `invalid-empty-suffix-topic.yaml`: Contains the name \"demo-topic-\" to test for a missing numeric suffix.\n</info added on 2025-07-30T13:15:17.561Z>",
+            "status": "done",
             "testStrategy": "Manually inspect the created manifest file to ensure it clearly contains invalid `KafkaTopic` names according to the established rules."
           },
           {
@@ -338,7 +338,7 @@
               "8.2"
             ],
             "details": "Use `git add <manifest_file>`, `git commit -m \"feat: Add invalid KafkaTopic manifest for negative test\"`, and `git push origin <test_branch_name>`.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Verify the commit appears in the branch history and the file is present on the remote repository."
           },
           {
@@ -349,7 +349,7 @@
               "8.3"
             ],
             "details": "Navigate to the GitHub repository, select the test branch, and create a new pull request. Provide a clear title (e.g., \"Test: Negative KafkaTopic Naming Convention\") and description.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Verify the pull request is successfully created and the associated GitHub Actions workflow run is initiated."
           },
           {
@@ -360,7 +360,7 @@
               "8.4"
             ],
             "details": "Access the GitHub Actions tab for the pull request, review the workflow run logs, specifically looking for the OPA validation step's output. Confirm the workflow status is 'failed' and the logs contain specific error messages detailing which `KafkaTopic` names are invalid and why.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Screenshot or record the workflow run status and the relevant error messages from the logs to document the successful negative test case."
           }
         ]
@@ -376,8 +376,49 @@
           7,
           8
         ],
-        "status": "pending",
-        "subtasks": []
+        "status": "in-progress",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Coordinate Constraint Removal with Cluster Operations",
+            "description": "Formally request and schedule the deletion of the active Gatekeeper Constraint from the Kubernetes cluster with the operations team.",
+            "dependencies": [],
+            "details": "Create a ticket or follow the established change management process to request the removal of the Constraint enforcing the `kafkatopic-naming-template`. Provide the exact name and namespace of the resource to be deleted.\n<info added on 2025-07-30T14:16:22.119Z>\nIniciando coordinación con equipo de operaciones del cluster:\n\nANÁLISIS DEL CONSTRAINT ACTUAL:\n- Archivo: gatekeeper/kafkatopic-naming-template.yaml\n- Tipo de recurso: ConstraintTemplate y posiblemente un Constraint asociado\n- Política a desactivar: Validación de nombres de KafkaTopic con patrón ^demo-topic-[0-9]+$\n\nSOLICITUD PARA EQUIPO DE OPERACIONES:\n1. Identificar y listar todos los Constraints activos relacionados con kafkatopic-naming\n2. Remover el/los Constraint(s) del cluster de Kubernetes \n3. Verificar que no hay otras dependencias o recursos relacionados\n\nJUSTIFICACIÓN:\n- Nueva validación OPA implementada y probada exitosamente\n- Migración completa del sistema de validación de Gatekeeper a OPA\n- Reducción de complejidad en el cluster\n\nPRÓXIMOS PASOS:\n- Esperar confirmación del equipo de operaciones\n- Proceder con la eliminación del archivo del repositorio una vez confirmada la coordinación\n</info added on 2025-07-30T14:16:22.119Z>",
+            "status": "pending",
+            "testStrategy": "Confirm that the request has been received and scheduled by the cluster operations team."
+          },
+          {
+            "id": 2,
+            "title": "Create Pull Request to Remove Policy File from Repository",
+            "description": "Delete the `kafkatopic-naming-template.yaml` file from the `cfk-control-plane-argocd` repository via a pull request.",
+            "dependencies": [],
+            "details": "Create a new branch, remove the `gatekeeper/kafkatopic-naming-template.yaml` file, and submit a pull request. The PR description must reference Task 9 and explain the policy is being decommissioned in favor of the new OPA validation workflow.",
+            "status": "in-progress",
+            "testStrategy": "Ensure the pull request passes all status checks and is approved by code owners."
+          },
+          {
+            "id": 3,
+            "title": "Confirm Deletion of Gatekeeper Constraint from Cluster",
+            "description": "Follow up with the cluster operations team to ensure the Gatekeeper Constraint has been successfully deleted from the cluster.",
+            "dependencies": [
+              "9.1"
+            ],
+            "details": "Verify the completion of the ticket or change request from subtask 1. If possible, use `kubectl get constraint <constraint-name>` to confirm the resource no longer exists.",
+            "status": "pending",
+            "testStrategy": "Obtain explicit confirmation (e.g., a closed ticket) from the operations team that the deletion command was executed successfully."
+          },
+          {
+            "id": 4,
+            "title": "Verify Policy Decommissioning with a Non-Compliant Resource",
+            "description": "Directly apply a `KafkaTopic` manifest to the cluster that violates the old naming policy to confirm it is no longer blocked by Gatekeeper.",
+            "dependencies": [
+              "9.3"
+            ],
+            "details": "Create a temporary YAML file for a KafkaTopic with a non-compliant name (e.g., `name: invalid-topic-name`). Use `kubectl apply -f` to attempt to create it in the cluster. The resource creation must succeed.",
+            "status": "pending",
+            "testStrategy": "The `kubectl apply` command should return a success message. Follow up with `kubectl get kafkatopic invalid-topic-name` to confirm its creation. Clean up the test resource afterwards."
+          }
+        ]
       },
       {
         "id": 10,
@@ -395,7 +436,7 @@
     ],
     "metadata": {
       "created": "2025-07-29T08:08:26.040Z",
-      "updated": "2025-07-30T12:35:19.172Z",
+      "updated": "2025-07-30T14:34:47.497Z",
       "description": "Tasks for master context"
     }
   }
