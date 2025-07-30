@@ -1,0 +1,207 @@
+📋 TAREA 8: Test Workflow with Non-Compliant Resources (Negative Case)
+=======================================================================
+
+🎯 OBJETIVO:
+Verificar que el workflow de GitHub Actions FALLA correctamente cuando se usan nombres de KafkaTopic que NO CUMPLEN la convención de nombres (^demo-topic-[0-9]+$).
+
+📝 ESTADO: IN-PROGRESS
+
+🚀 SUBTAREAS Y PASOS DETALLADOS:
+===============================
+
+🔄 SUBTAREA 8.1: Create Test Branch for Negative Case
+-----------------------------------------------------
+📋 Estado: PENDING
+
+🎯 Objetivo: Crear nueva rama para probar el caso negativo
+
+Comandos a ejecutar:
+```bash
+# Asegurar que estamos en main y actualizado
+git checkout main
+git pull origin main
+
+# Crear nueva rama para test negativo
+git checkout -b feature/test-invalid-kafka-topic
+```
+
+Criterio de aceptación: ✅ Nueva rama creada y activa
+
+
+🔄 SUBTAREA 8.2: Develop Non-Compliant KafkaTopic Manifest
+----------------------------------------------------------
+📋 Estado: PENDING (depende de 8.1)
+
+🎯 Objetivo: Crear manifiestos con nombres INVÁLIDOS
+
+Ejemplos de nombres INVÁLIDOS que violan ^demo-topic-[0-9]+$:
+- ❌ "invalid-topic-123" (no empieza con "demo-topic-")
+- ❌ "demo-topic-test" (no termina en números)
+- ❌ "demo-topic-" (no tiene números al final)
+- ❌ "Demo-Topic-123" (mayúsculas)
+- ❌ "demo_topic_123" (guiones bajos)
+
+Archivos a crear:
+```bash
+# Crear directorio si no existe
+mkdir -p test-resources
+
+# Crear archivo con manifiestos inválidos
+cat > test-resources/invalid-kafka-topics.yaml << 'EOF'
+apiVersion: platform.confluent.io/v1beta1
+kind: KafkaTopic
+metadata:
+  name: invalid-topic-123  # ❌ No empieza con "demo-topic-"
+  namespace: confluent
+spec:
+  replicas: 3
+  partitionCount: 6
+  configs:
+    cleanup.policy: "delete"
+---
+apiVersion: platform.confluent.io/v1beta1
+kind: KafkaTopic
+metadata:
+  name: demo-topic-test    # ❌ No termina en números
+  namespace: confluent
+spec:
+  replicas: 3
+  partitionCount: 6
+  configs:
+    cleanup.policy: "delete"
+---
+apiVersion: platform.confluent.io/v1beta1
+kind: KafkaTopic
+metadata:
+  name: demo-topic-        # ❌ No tiene números al final
+  namespace: confluent
+spec:
+  replicas: 3
+  partitionCount: 6
+  configs:
+    cleanup.policy: "delete"
+EOF
+```
+
+Criterio de aceptación: ✅ Archivo creado con múltiples manifiestos inválidos
+
+
+🔄 SUBTAREA 8.3: Commit and Push Invalid Manifest to Test Branch
+----------------------------------------------------------------
+📋 Estado: PENDING (depende de 8.1, 8.2)
+
+🎯 Objetivo: Subir manifiestos inválidos a la rama de test
+
+Comandos a ejecutar:
+```bash
+# Agregar archivo al staging
+git add test-resources/invalid-kafka-topics.yaml
+
+# Commit con mensaje descriptivo
+git commit -m "test: Add invalid KafkaTopic manifests for negative case testing
+
+- invalid-topic-123: wrong prefix
+- demo-topic-test: wrong suffix  
+- demo-topic-: missing numbers
+These should trigger OPA validation failures"
+
+# Push a rama remota
+git push origin feature/test-invalid-kafka-topic
+```
+
+Criterio de aceptación: ✅ Cambios subidos a GitHub
+
+
+🔄 SUBTAREA 8.4: Open Pull Request for Negative Case Validation
+---------------------------------------------------------------
+📋 Estado: PENDING (depende de 8.3)
+
+🎯 Objetivo: Crear PR para disparar el workflow
+
+Pasos:
+1. Ve a GitHub: https://github.com/sotojuan2/cfk-control-plane-argocd
+2. Selecciona la rama: feature/test-invalid-kafka-topic
+3. Haz clic en "Compare & pull request"
+4. Completa:
+   - Título: "Test: Negative Case - Invalid KafkaTopic Naming Convention"
+   - Descripción: 
+     ```
+     🔴 NEGATIVE TEST CASE
+     
+     This PR tests invalid KafkaTopic names that should FAIL validation:
+     - invalid-topic-123 (wrong prefix)
+     - demo-topic-test (wrong suffix)
+     - demo-topic- (missing numbers)
+     
+     Expected Result: ❌ GitHub Actions workflow should FAIL with OPA validation errors
+     ```
+5. Crear Pull Request
+
+Criterio de aceptación: ✅ PR creado y workflow iniciado
+
+
+🔄 SUBTAREA 8.5: Validate Workflow Failure and Error Messages
+-------------------------------------------------------------
+📋 Estado: PENDING (depende de 8.4)
+
+🎯 Objetivo: Verificar que el workflow FALLE correctamente
+
+Pasos de verificación:
+1. Ve a la pestaña "Actions" en GitHub
+2. Busca el workflow run del PR recién creado
+3. Verifica que el estado sea: ❌ FAILED
+4. Revisa los logs del paso "OPA Validation"
+5. Confirma mensajes de error específicos como:
+   ```
+   ❌ KafkaTopic name 'invalid-topic-123' is invalid: must start with 'demo-topic-'
+   ❌ KafkaTopic name 'demo-topic-test' is invalid: must end with one or more digits
+   ❌ KafkaTopic name 'demo-topic-' is invalid: name cannot be empty after 'demo-topic-'
+   ```
+
+Documentar:
+- Screenshot del workflow fallido
+- Captura de los mensajes de error específicos
+- Link al workflow run
+
+Criterio de aceptación: ✅ Workflow falla con mensajes claros de error
+
+
+🧹 CLEANUP POSTERIOR:
+====================
+Después de completar todas las subtareas:
+
+```bash
+# Cerrar PR (sin mergear)
+gh pr close --delete-branch
+
+# O manualmente en GitHub, luego:
+git checkout main
+git branch -D feature/test-invalid-kafka-topic
+git push origin --delete feature/test-invalid-kafka-topic
+
+# Opcional: eliminar archivos de test
+rm test-resources/invalid-kafka-topics.yaml
+```
+
+📊 ACTUALIZAR TASKMASTER:
+=========================
+Marca las subtareas como completadas:
+```bash
+task-master set-status --id=8.1 --status=done
+task-master set-status --id=8.2 --status=done
+task-master set-status --id=8.3 --status=done
+task-master set-status --id=8.4 --status=done
+task-master set-status --id=8.5 --status=done
+task-master set-status --id=8 --status=done
+```
+
+🎯 RESULTADO ESPERADO:
+======================
+✅ Workflow falla correctamente con manifiestos inválidos
+✅ Mensajes de error claros y específicos
+✅ Validación del caso negativo completada
+✅ Documentación de resultados
+
+📅 FECHA: 30 de Julio de 2025
+📝 ESTADO: IN-PROGRESS
+🏷️ TAG: master
