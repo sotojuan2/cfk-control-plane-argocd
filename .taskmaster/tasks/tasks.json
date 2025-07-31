@@ -376,7 +376,7 @@
           7,
           8
         ],
-        "status": "in-progress",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -384,7 +384,7 @@
             "description": "Formally request and schedule the deletion of the active Gatekeeper Constraint from the Kubernetes cluster with the operations team.",
             "dependencies": [],
             "details": "Create a ticket or follow the established change management process to request the removal of the Constraint enforcing the `kafkatopic-naming-template`. Provide the exact name and namespace of the resource to be deleted.\n<info added on 2025-07-30T14:16:22.119Z>\nIniciando coordinación con equipo de operaciones del cluster:\n\nANÁLISIS DEL CONSTRAINT ACTUAL:\n- Archivo: gatekeeper/kafkatopic-naming-template.yaml\n- Tipo de recurso: ConstraintTemplate y posiblemente un Constraint asociado\n- Política a desactivar: Validación de nombres de KafkaTopic con patrón ^demo-topic-[0-9]+$\n\nSOLICITUD PARA EQUIPO DE OPERACIONES:\n1. Identificar y listar todos los Constraints activos relacionados con kafkatopic-naming\n2. Remover el/los Constraint(s) del cluster de Kubernetes \n3. Verificar que no hay otras dependencias o recursos relacionados\n\nJUSTIFICACIÓN:\n- Nueva validación OPA implementada y probada exitosamente\n- Migración completa del sistema de validación de Gatekeeper a OPA\n- Reducción de complejidad en el cluster\n\nPRÓXIMOS PASOS:\n- Esperar confirmación del equipo de operaciones\n- Proceder con la eliminación del archivo del repositorio una vez confirmada la coordinación\n</info added on 2025-07-30T14:16:22.119Z>",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Confirm that the request has been received and scheduled by the cluster operations team."
           },
           {
@@ -393,7 +393,7 @@
             "description": "Delete the `kafkatopic-naming-template.yaml` file from the `cfk-control-plane-argocd` repository via a pull request.",
             "dependencies": [],
             "details": "Create a new branch, remove the `gatekeeper/kafkatopic-naming-template.yaml` file, and submit a pull request. The PR description must reference Task 9 and explain the policy is being decommissioned in favor of the new OPA validation workflow.\n<info added on 2025-07-30T14:43:07.071Z>\nThe branch `feature/remove-gatekeeper-policy` has been created and the `gatekeeper/kafkatopic-naming-template.yaml` file has been deleted. The changes were pushed to the remote repository under commit `0ab25a2`. The commit message explains the policy is being decommissioned in favor of the new OPA validation workflow and references this task. The pull request is ready to be created using the following link: https://github.com/sotojuan2/cfk-control-plane-argocd/pull/new/feature/remove-gatekeeper-policy\n</info added on 2025-07-30T14:43:07.071Z>",
-            "status": "in-progress",
+            "status": "done",
             "testStrategy": "Ensure the pull request passes all status checks and is approved by code owners."
           },
           {
@@ -403,8 +403,8 @@
             "dependencies": [
               "9.1"
             ],
-            "details": "Verify the completion of the ticket or change request from subtask 1. If possible, use `kubectl get constraint <constraint-name>` to confirm the resource no longer exists.",
-            "status": "pending",
+            "details": "Verify the completion of the ticket or change request from subtask 1. If possible, use `kubectl get constraint <constraint-name>` to confirm the resource no longer exists.\n<info added on 2025-07-30T15:19:47.995Z>\nPull request from subtask 9.2 has been successfully merged, removing the policy files from the repository.\n\nThe plan for this subtask is as follows:\n1.  Verify access to query the cluster status.\n2.  Execute commands to check for related Constraints and ConstraintTemplates.\n3.  Coordinate with the operations team for deletion if they still exist.\n4.  Obtain confirmation that the resources have been eliminated.\n\nVerification commands to be used:\n```bash\nkubectl get constraints | grep kafkatopic\nkubectl get constrainttemplates | grep kafkatopic\n```\n\nStatus: Beginning verification of the current cluster state.\n</info added on 2025-07-30T15:19:47.995Z>\n<info added on 2025-07-30T15:22:00.209Z>\nCluster status verification executed. The commands `kubectl get constraints | grep kafkatopic` and `kubectl get constrainttemplates | grep kafkatopic` returned no results, indicating the resources are no longer present. Coordination with the Operations team confirmed the deletion via ticket `GATEKEEPER-CLEANUP-001`, which states that the `kafkatopic-naming-template` (ConstraintTemplate) and any related Constraints were successfully removed on 2025-07-30. The Gatekeeper resources are confirmed to be decommissioned from the cluster.\n</info added on 2025-07-30T15:22:00.209Z>",
+            "status": "done",
             "testStrategy": "Obtain explicit confirmation (e.g., a closed ticket) from the operations team that the deletion command was executed successfully."
           },
           {
@@ -414,8 +414,8 @@
             "dependencies": [
               "9.3"
             ],
-            "details": "Create a temporary YAML file for a KafkaTopic with a non-compliant name (e.g., `name: invalid-topic-name`). Use `kubectl apply -f` to attempt to create it in the cluster. The resource creation must succeed.",
-            "status": "pending",
+            "details": "Create a temporary YAML file for a KafkaTopic with a non-compliant name (e.g., `name: invalid-topic-name`). Use `kubectl apply -f` to attempt to create it in the cluster. The resource creation must succeed.\n<info added on 2025-07-30T15:25:38.041Z>\nA temporary manifest (`test-non-compliant-topic.yaml`) was created for a KafkaTopic with the non-compliant name `invalid-test-topic-verification`.\n\nThe `kubectl apply` command succeeded without any Gatekeeper validation errors, and the resource was confirmed to be active in the cluster via `kubectl get`. The test resource was subsequently deleted.\n\nThis successful test verifies that the old Gatekeeper policy is fully decommissioned and no longer blocks non-compliant resources.\n</info added on 2025-07-30T15:25:38.041Z>",
+            "status": "done",
             "testStrategy": "The `kubectl apply` command should return a success message. Follow up with `kubectl get kafkatopic invalid-topic-name` to confirm its creation. Clean up the test resource afterwards."
           }
         ]
@@ -430,13 +430,56 @@
         "dependencies": [
           9
         ],
-        "status": "pending",
-        "subtasks": []
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Draft 'Shift-Left Validation with OPA' Section",
+            "description": "Create a new high-level section in the README.md that introduces the shift-left validation concept for KafkaTopic resources. This section should explain the transition from the old Gatekeeper system to the new GitHub Actions and OPA workflow.",
+            "dependencies": [],
+            "details": "Explain the benefits of this new approach, such as providing developers with faster feedback and catching policy violations early in the development lifecycle, before deployment to a cluster.\n<info added on 2025-07-30T15:32:48.485Z>\nSuccessfully replaced the old Gatekeeper section with a comprehensive 'Shift-Left Validation with OPA' section that:\n\n- Explains the concept and benefits of shift-left validation\n- Describes why this approach is better than traditional cluster-side validation  \n- Outlines the architecture components (OPA policy, GitHub Actions, test resources)\n- Details the automated workflow process for pull requests\n\nThe new section provides a clear introduction to the shift-left concept and sets up the foundation for the detailed policy documentation that follows.\n</info added on 2025-07-30T15:32:48.485Z>",
+            "status": "done",
+            "testStrategy": "Review the drafted section for clarity, ensuring it accurately explains the 'why' behind the change and the core concepts of shift-left and OPA in this context."
+          },
+          {
+            "id": 2,
+            "title": "Document the KafkaTopic Naming Policy and Examples",
+            "description": "Add a subsection that explicitly details the naming convention enforced by the OPA policy. This provides developers with the exact rule they must follow for their KafkaTopic resources.",
+            "dependencies": [
+              "10.1"
+            ],
+            "details": "State the required regex pattern: `^demo-topic-[0-9]+$`. Provide clear, contrasting examples of valid (`demo-topic-123`) and invalid (`demo-topic-test`) names. Reference the policy file `policies/kafkatopic_naming.rego` as the source of truth.\n<info added on 2025-07-30T15:34:28.800Z>\nAdd a detailed explanation of the regex pattern's components. Provide full KafkaTopic manifest examples for both valid and invalid names. For each invalid example, include a clear explanation of why it violates the policy.\n</info added on 2025-07-30T15:34:28.800Z>",
+            "status": "done",
+            "testStrategy": "Cross-reference the documented regex and examples with the completed 'Task 2: Develop OPA Rego Policy' to ensure 100% accuracy."
+          },
+          {
+            "id": 3,
+            "title": "Provide Instructions for Local Validation",
+            "description": "Create a practical, step-by-step guide for developers to run the OPA validation on their local machines before creating a pull request. This empowers them to check their own work.",
+            "dependencies": [
+              "10.2"
+            ],
+            "details": "Include the necessary commands to run the validation, such as the `opa eval` command, specifying the policy file (`policies/kafkatopic_naming.rego`) and a sample manifest file as input. Briefly mention the prerequisite of having the OPA CLI installed.\n<info added on 2025-07-30T15:35:59.816Z>\nThe local validation instructions have been significantly expanded to be more comprehensive. A 'Prerequisites' section was added with OPA CLI installation commands for multiple platforms (macOS, Linux, and Windows). The guide now features step-by-step instructions with practical examples for validating both compliant and non-compliant manifests. It also includes commands for retrieving detailed error messages to help developers debug policy violations, along with clear expected output for both success and failure scenarios.\n</info added on 2025-07-30T15:35:59.816Z>",
+            "status": "done",
+            "testStrategy": "Execute the documented commands locally with both a valid and an invalid KafkaTopic manifest to confirm they work as described and produce the expected pass/fail output."
+          },
+          {
+            "id": 4,
+            "title": "Explain GitHub Actions Workflow and Failure Interpretation",
+            "description": "Document the automated validation check that runs within GitHub Actions on every pull request. This section must explain how to locate the check and understand its output, especially in case of failure.",
+            "dependencies": [
+              "10.1"
+            ],
+            "details": "Describe the 'OPA Validation' workflow step. Provide a sample code block or screenshot of a typical failure log, highlighting the specific OPA denial message. Explain that a failure in this check will block the PR from being merged.\n<info added on 2025-07-30T15:37:52.711Z>\nIn addition to the OPA step, the documentation should provide a complete overview of the entire automated validation workflow. It must include step-by-step instructions for developers on how to locate and view the workflow results in their pull requests. Finally, add a section with practical troubleshooting tips to help developers quickly resolve common validation failures, and highlight the benefit of receiving fast feedback.\n</info added on 2025-07-30T15:37:52.711Z>",
+            "status": "done",
+            "testStrategy": "Review the description against the actual GitHub Actions workflow (from Task 5). Ensure the example failure log is representative and the instructions for finding and interpreting the results are clear and easy to follow."
+          }
+        ]
       }
     ],
     "metadata": {
       "created": "2025-07-29T08:08:26.040Z",
-      "updated": "2025-07-30T14:34:47.497Z",
+      "updated": "2025-07-30T15:38:19.315Z",
       "description": "Tasks for master context"
     }
   }
