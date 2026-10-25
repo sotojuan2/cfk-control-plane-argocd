@@ -1,0 +1,69 @@
+# Argo CD custom health checks for CFK CRDs not covered by Argo CD built-ins.
+# Argo CD (v2.14+) already ships health checks for platform.confluent.io
+# Connector, Kafka, Connect, SchemaRegistry, KsqlDB, ControlCenter and Zookeeper.
+#
+# Apply (merges into the existing argocd-cm):
+#   kubectl -n argocd patch configmap argocd-cm --type merge --patch-file argocd/cfk-health-checks.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-cm
+  namespace: argocd
+  labels:
+    app.kubernetes.io/name: argocd-cm
+    app.kubernetes.io/part-of: argocd
+data:
+  resource.customizations.health.platform.confluent.io_KafkaTopic: |
+    local hs = {}
+    local function failureMessage(default)
+      if obj.status.conditions ~= nil then
+        for _, c in ipairs(obj.status.conditions) do
+          if c.status == "False" and c.message ~= nil and c.message ~= "" then
+            return c.message
+          end
+        end
+      end
+      return default
+    end
+    if obj.status ~= nil then
+      if obj.status.state == "ERROR" or obj.status.appState == "Failed" then
+        hs.status = "Degraded"
+        hs.message = failureMessage("KafkaTopic failed")
+        return hs
+      end
+      if obj.status.state == "CREATED" then
+        hs.status = "Healthy"
+        hs.message = "KafkaTopic created"
+        return hs
+      end
+    end
+    hs.status = "Progressing"
+    hs.message = "Waiting for KafkaTopic to be created"
+    return hs
+  resource.customizations.health.platform.confluent.io_Schema: |
+    local hs = {}
+    local function failureMessage(default)
+      if obj.status.conditions ~= nil then
+        for _, c in ipairs(obj.status.conditions) do
+          if c.status == "False" and c.message ~= nil and c.message ~= "" then
+            return c.message
+          end
+        end
+      end
+      return default
+    end
+    if obj.status ~= nil then
+      if obj.status.state == "ERROR" or obj.status.appState == "Failed" then
+        hs.status = "Degraded"
+        hs.message = failureMessage("Schema failed")
+        return hs
+      end
+      if obj.status.state == "CREATED" then
+        hs.status = "Healthy"
+        hs.message = "Schema registered"
+        return hs
+      end
+    end
+    hs.status = "Progressing"
+    hs.message = "Waiting for Schema to be registered"
+    return hs

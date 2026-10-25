@@ -125,6 +125,30 @@ At the end you will see the following in argocd UI
 ![ArgoCD UI](./images/operator.png)
 
 
+## Configure Argo CD health checks for CFK resources
+
+Argo CD ships built-in health checks for some CFK CRDs (`Kafka`, `Connector`, `Connect`, `SchemaRegistry`, ...) but not for `KafkaTopic` or `Schema`, so without a custom check those resources show as Healthy even if CFK failed to create them.
+
+`argocd/cfk-health-checks.yaml` adds Lua health checks for them:
+
+| `status.state` | Argo CD health |
+|---|---|
+| `CREATED` | Healthy |
+| `ERROR` (or `appState: Failed`) | Degraded, with the CFK condition message |
+| missing / other | Progressing |
+
+Apply them to the existing `argocd-cm`:
+
+```shell
+kubectl -n argocd patch configmap argocd-cm --type merge --patch-file argocd/cfk-health-checks.yaml
+```
+
+Test the Lua scripts locally (requires the `argocd` CLI, no cluster needed):
+
+```shell
+./argocd/health-checks/test.sh
+```
+
 ## Deploy a CP Cluster
 
 ### Start Docker Compose
