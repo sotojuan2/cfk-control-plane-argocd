@@ -13,4 +13,4 @@ status:
       reason: Created
       status: "True"
       type: platform.confluent.io/app-ready
-  state: CREATED
+  state: SUCCEEDED

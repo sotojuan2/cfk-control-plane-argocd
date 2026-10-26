@@ -1,0 +1,14 @@
+# Negative test: CFK cannot reach Kafka REST -> status.state=ERROR -> Argo CD Degraded.
+# Do not put this under data/CP unless you intentionally want a Degraded app.
+# Apply with:
+#   kubectl apply -f argocd/health-checks/examples/topic-fail.yml
+apiVersion: platform.confluent.io/v1beta1
+kind: KafkaTopic
+metadata:
+  name: demo-topic-fail
+  namespace: confluent-cp
+spec:
+  replicas: 3
+  partitionCount: 1
+  kafkaRest:
+    endpoint: http://host.docker.internal:1

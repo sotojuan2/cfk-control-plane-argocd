@@ -131,10 +131,10 @@ Argo CD ships built-in health checks for some CFK CRDs (`Kafka`, `Connector`, `C
 
 `argocd/cfk-health-checks.yaml` adds Lua health checks for them:
 
-| `status.state` | Argo CD health |
+| CFK status | Argo CD health |
 |---|---|
-| `CREATED` | Healthy |
-| `ERROR` (or `appState: Failed`) | Degraded, with the CFK condition message |
+| `state=CREATED` or `SUCCEEDED`, or `appState=Created` | Healthy |
+| `state=ERROR` or `appState=Failed` | Degraded (shows the CFK condition message) |
 | missing / other | Progressing |
 
 Apply them to the existing `argocd-cm`:
@@ -143,11 +143,79 @@ Apply them to the existing `argocd-cm`:
 kubectl -n argocd patch configmap argocd-cm --type merge --patch-file argocd/cfk-health-checks.yaml
 ```
 
-Test the Lua scripts locally (requires the `argocd` CLI, no cluster needed):
+#### Offline unit test (`test.sh`) — optional
+
+`./argocd/health-checks/test.sh` is **not** required to use the feature in a cluster. It is a **local unit test** for the Lua scripts:
+
+- Runs `argocd admin settings resource-overrides health` against the fixtures in `argocd/health-checks/testdata/`
+- Needs only the `argocd` CLI (no Kubernetes cluster, no CFK, no Kafka)
+- Checks that Healthy / Degraded / Progressing fixtures map to the expected Argo status before you patch `argocd-cm`
+
+Use it when changing the Lua in `argocd/cfk-health-checks.yaml` (for example in CI or before opening a PR):
 
 ```shell
 ./argocd/health-checks/test.sh
 ```
+
+Expected output: six `PASS` lines (three KafkaTopic + three Schema fixtures).
+
+### UI: Healthy resources
+
+When CFK successfully creates a topic and registers a schema, the application tree shows green health icons on `KafkaTopic` and `Schema` (and the app is **Healthy**):
+
+![CFK health checks - Healthy KafkaTopic and Schema](./images/cfk-health-healthy.png)
+
+### UI: Degraded resource (negative test)
+
+To verify the failure path, apply a `KafkaTopic` that CFK cannot create (invalid Kafka REST endpoint). CFK writes `status.state=ERROR` / `appState=Failed`; the custom health check maps that to **Degraded** (red heart).
+
+```shell
+kubectl apply -f argocd/health-checks/examples/topic-fail.yml
+```
+
+```yaml
+apiVersion: platform.confluent.io/v1beta1
+kind: KafkaTopic
+metadata:
+  name: demo-topic-fail
+  namespace: confluent-cp
+spec:
+  replicas: 3
+  partitionCount: 1
+  kafkaRest:
+    endpoint: http://host.docker.internal:1   # nothing listens here on purpose
+```
+
+![CFK health checks - Degraded app tree](./images/cfk-health-degraded-tree.png)
+
+What fails and what Argo CD reports:
+
+| Layer | What happened |
+|---|---|
+| **Where it fails** | CFK operator calls Kafka REST at `spec.kafkaRest.endpoint` (`http://host.docker.internal:1`). Nothing accepts TCP on port `1`, so the create request never reaches a broker. |
+| **CFK status on `demo-topic-fail`** | `status.state=ERROR`, `status.appState=Failed`. Condition message example: `http://host.docker.internal:1/kafka/v3 dial tcp ...:1: connect: connection refused`. The topic is **not** created on the Kafka cluster. |
+| **Custom health check** | Lua in `argocd-cm` sees `state=ERROR` / `appState=Failed` → returns Argo health **Degraded** (and surfaces the CFK condition message when present). |
+| **Argo CD resource** | `KafkaTopic/demo-topic-fail` → health **Degraded** (red broken heart). Often also **OutOfSync** / prune candidate if the object is live-only and not in git. |
+| **Argo CD application** | App `confluent-cp` → **APP HEALTH = Degraded** because at least one managed resource is Degraded. |
+| **Other resources** | `demo-topic-1` (KafkaTopic) and `demo-topic-1-value` (Schema) stay **Healthy**; `schema-config` stays Synced. |
+
+Icons in the tree (example above):
+
+| Resource | Icon meaning |
+|---|---|
+| `confluent-cp` (app) | Degraded (broken heart) + OutOfSync (yellow arrow) |
+| `demo-topic-1` | Healthy |
+| `demo-topic-fail` | Degraded + often marked for delete/OutOfSync |
+| `demo-topic-1-value` | Healthy |
+| `schema-config` | Synced ConfigMap |
+
+Clean up the negative test when finished:
+
+```shell
+kubectl delete kafkatopic demo-topic-fail -n confluent-cp
+```
+
+After deletion and refresh, the app should return to **Healthy**.
 
 ## Deploy a CP Cluster
 

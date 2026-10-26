@@ -31,7 +31,8 @@ data:
         hs.message = failureMessage("KafkaTopic failed")
         return hs
       end
-      if obj.status.state == "CREATED" then
+      -- CFK KafkaTopic reports CREATED; some paths may use SUCCEEDED
+      if obj.status.state == "CREATED" or obj.status.state == "SUCCEEDED" or obj.status.appState == "Created" then
         hs.status = "Healthy"
         hs.message = "KafkaTopic created"
         return hs
@@ -58,7 +59,8 @@ data:
         hs.message = failureMessage("Schema failed")
         return hs
       end
-      if obj.status.state == "CREATED" then
+      -- CFK Schema reports state=SUCCEEDED and appState=Created when registered
+      if obj.status.state == "CREATED" or obj.status.state == "SUCCEEDED" or obj.status.appState == "Created" then
         hs.status = "Healthy"
         hs.message = "Schema registered"
         return hs
