@@ -1,0 +1,16 @@
+apiVersion: platform.confluent.io/v1beta1
+kind: KafkaTopic
+metadata:
+  name: demo-topic-1
+  namespace: confluent-cloud
+spec: {}
+status:
+  appState: Failed
+  conditions:
+    - lastProbeTime: "2026-01-01T00:00:00Z"
+      lastTransitionTime: "2026-01-01T00:00:00Z"
+      message: "kafka Rest API request failed: Authentication failed"
+      reason: CreateFailed
+      status: "False"
+      type: platform.confluent.io/app-ready
+  state: ERROR

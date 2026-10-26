@@ -2,11 +2,12 @@ apiVersion: platform.confluent.io/v1beta1
 kind: KafkaTopic
 metadata:
   name: demo-topic-1
-  namespace: confluent
+  namespace: confluent-cp
 spec:
   replicas: 3
   partitionCount: 4
   configs:
     message.timestamp.type: "LogAppendTime"
   kafkaRest:
-    endpoint: http://host.docker.internal:8090
+    # cp/docker-compose.yml exposes Kafka REST on :8082 (rest-proxy service)
+    endpoint: http://host.docker.internal:8082

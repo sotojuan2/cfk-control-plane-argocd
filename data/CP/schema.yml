@@ -1,0 +1,28 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: schema-config
+  namespace: confluent-cp
+data:
+  schema: |
+    {
+      "namespace": "examples.demo.basic",
+      "type": "record",
+      "name": "Demo",
+      "fields": [
+        {"name": "id", "type": "string"},
+        {"name": "amount", "type": "double"}
+      ]
+    }
+---
+apiVersion: platform.confluent.io/v1beta1
+kind: Schema
+metadata:
+  name: demo-topic-1-value
+  namespace: confluent-cp
+spec:
+  data:
+    format: avro
+    configRef: schema-config
+  schemaRegistryRest:
+    endpoint: http://host.docker.internal:8081

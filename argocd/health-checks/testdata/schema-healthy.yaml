@@ -1,0 +1,16 @@
+apiVersion: platform.confluent.io/v1beta1
+kind: Schema
+metadata:
+  name: demo-topic-1-value
+  namespace: confluent-cloud
+spec: {}
+status:
+  appState: Created
+  conditions:
+    - lastProbeTime: "2026-01-01T00:00:00Z"
+      lastTransitionTime: "2026-01-01T00:00:00Z"
+      message: "Application is created"
+      reason: Created
+      status: "True"
+      type: platform.confluent.io/app-ready
+  state: SUCCEEDED
